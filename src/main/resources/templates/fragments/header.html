@@ -20,6 +20,114 @@
             </a>
         </nav>
     </header>
+	
+	<header th:fragment="authenticatedHeader(activeMenu)">
+	    <span>Knitting</span>
+
+	    <button
+	        type="button"
+	        id="global-menu-button"
+	        aria-controls="global-menu"
+	        aria-expanded="false">
+	        メニュー
+	    </button>
+
+		<nav id="global-menu" hidden>
+		    <a
+		        th:href="@{/}"
+		        th:text="${activeMenu == 'home'} ? '▶ トップ' : 'トップ'">
+		        トップ
+		    </a>
+			
+			<p>作品</p>
+
+			<a
+			    th:href="@{/works/new}"
+			    th:text="${activeMenu == 'work-new'} ? '▶ 作品を登録' : '作品を登録'">
+			    作品を登録
+			</a>
+			
+			<a
+			    th:href="@{/works/in-progress}"
+			    th:text="${activeMenu == 'in-progress'} ? '▶ 制作中一覧' : '制作中一覧'">
+			    制作中一覧
+			</a>
+			
+			<a
+			    th:href="@{/works/completed}"
+			    th:text="${activeMenu == 'completed'} ? '▶ 完成一覧' : '完成一覧'">
+			    完成一覧
+			</a>
+			
+			<p>計算</p>
+
+			<a
+			    th:href="@{/gauge-adjustment}"
+			    th:text="${activeMenu == 'gauge-adjustment'} ? '▶ ゲージ・目数・段数調整' : 'ゲージ・目数・段数調整'">
+			    ゲージ・目数・段数調整
+			</a>
+			
+			<a
+			    th:href="@{/yarn-combination}"
+			    th:text="${activeMenu == 'yarn-combination'} ? '▶ 2本取り・引き揃え計算' : '2本取り・引き揃え計算'">
+			    2本取り・引き揃え計算
+			</a>
+			
+			<a
+			    th:href="@{/counter}"
+			    th:text="${activeMenu == 'counter'} ? '▶ 簡易カウンター' : '簡易カウンター'">
+			    簡易カウンター
+			</a>
+			
+			<p>参考</p>
+
+			<a
+			    th:href="@{/yarn-guide}"
+			    th:text="${activeMenu == 'yarn-guide'} ? '▶ 毛糸・推奨針号数対応表' : '毛糸・推奨針号数対応表'">
+			    毛糸・推奨針号数対応表
+			</a>
+			
+			<p>アカウント操作</p>
+
+			<button
+			    type="button"
+			    id="logout-button">
+			    ログアウト
+			</button>
+			
+		</nav>
+		
+		<form
+		    id="logout-form"
+		    th:action="@{/logout}"
+		    method="post">
+		</form>
+
+		<dialog id="logout-dialog">
+			<p>ログアウトしますか？</p>
+			
+			<p
+			    id="logout-unsaved-warning"
+			    hidden>
+			    保存されていない変更内容は失われます。
+			</p>
+
+			<button
+			    type="button"
+			    id="logout-cancel-button">
+			    キャンセル
+			</button>
+
+			<button
+			    type="button"
+			    id="logout-confirm-button">
+			    ログアウト
+			</button>
+		</dialog>
+		
+		<script th:src="@{/js/navigation.js}" defer></script>
+		
+	</header>
 
 </body>
 

@@ -1339,27 +1339,32 @@ username/email重複は具体的な項目エラーとして表示してよい。
 
 - 登録時にローカルBlocklistで弱い/common passwordを拒否する。
 - 外部APIは使用しない。
-- 初期規模は数千〜数万件程度を想定する。
-- 必要ならKnitting固有の明らかなpassword候補も含めてよい。
-- 数百万件を初期版の必須要件としない。
+- 使用データセットはSecListsの `Passwords/Common-Credentials/10k-most-common.txt` とする。
+- 使用するファイルは10,001件とし、「10k」という名称に合わせて10,000件へ加工しない。
+- ライセンスはMIT Licenseとする。
+- SecListsの公式ライセンス全文をプロジェクトルートの `SECLISTS_LICENSE.txt` に配置する。
+- Blocklistファイルは `src/main/resources/password-blocklist/10k-most-common.txt` に配置する。
+- ファイル文字コードはUTF-8とする。
+- データ形式は1行1passwordの改行区切りとする。
+- 空行が存在する場合は読み飛ばしてよい。
+- 各行をtrim / stripしない。
+- コメント構文は設けない。
 - 照合時のみ大文字小文字を区別しない。
 - password本体はcase-sensitiveのまま。
-- trim / Unicode normalization / leetspeak変換 / substring判定は行わない。
-- password全体一致のみ拒否。
-- 適用は「新しいpassword設定時」のみ。初期版では登録時のみ。
+- Unicode normalization / leetspeak変換 / substring判定は行わない。
+- password全体一致のみ拒否する。
+- 初期版では登録時の新しいpassword設定にのみ適用する。
 - login時には適用しない。
 - Blocklist更新で既存ユーザーを無効化しない。
 - 起動時に1回読み込み、メモリへ保持する。
 - requestごとのfile readやhot reloadは行わない。
-- Blocklistが欠損・読込不能ならfail closedでアプリ起動を失敗させる。
+- Blocklistファイルが欠損または読込不能の場合はfail closedとし、アプリケーションの起動を失敗させる。
 
 エラー文言の趣旨：
 
 > このパスワードは推測されやすいため使用できません。別のパスワードを設定してください。
 
 情報源、順位、漏えい有無等は表示しない。
-
-具体的データセット、ライセンス、件数、配置、データ構造は実装準備時に確定する。
 
 
 ### ユーザー登録と認証
@@ -15849,7 +15854,6 @@ Rate Limitの物理実装場所は公開環境決定後に確定する。方式�
 | 対象 | 残事項 |
 |---|---|
 | 毛糸基準 | `YarnThicknessStandard`のJavaパッケージ配置。責務・保持データ・利用方法は確定済み |
-| Password Blocklist | 使用する具体的データセット、ライセンス、件数、ファイル配置、データ形式 |
 
 ### C：実装時に調整可能
 
