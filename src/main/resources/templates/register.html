@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー登録 | Knitting</title>
+</head>
+<body>
+	
+	<div th:replace="~{fragments/header :: guestHeader('register')}"></div>
+
+    <main>
+        <h1>ユーザー登録</h1>
+		
+		<form
+		        th:action="@{/register}"
+		        th:object="${userRegistrationForm}"
+		        method="post">
+				
+				<div>
+				    <label for="email">メールアドレス</label>
+
+					<input
+					        type="email"
+					        id="email"
+					        autocomplete="email"
+					        maxlength="255"
+					        required
+					        th:field="*{email}"
+					        th:attr="data-known-duplicate=${#lists.contains(
+					                #fields.errors('email'),
+					                'このメールアドレスはすでに登録されています。')}">
+
+				    <p
+					        data-field-error="email"
+					        th:if="${#fields.hasErrors('email')}"
+					        th:errors="*{email}">
+				    </p>
+				</div>
+				
+				<div>
+				    <label for="username">ユーザー名</label>
+
+					<input
+					        type="text"
+					        id="username"
+					        autocomplete="username"
+					        minlength="4"
+					        maxlength="20"
+					        pattern="[A-Za-z0-9]+"
+					        required
+					        th:field="*{username}"
+					        th:attr="data-known-duplicate=${#lists.contains(
+					                #fields.errors('username'),
+					                'このユーザー名はすでに使用されています。')}">
+							
+					<p
+							data-field-error="username"
+							th:if="${#fields.hasErrors('username')}"
+							th:errors="*{username}">
+					</p>
+				</div>
+				
+				<div>
+				    <label for="password">パスワード</label>
+
+					<input
+					        type="password"
+					        id="password"
+					        autocomplete="new-password"
+							minlength="8"
+							maxlength="64"
+							pattern="[\x20-\x7E]+"
+							required
+					        th:field="*{password}">
+
+					<button
+					        type="button"
+					        data-password-toggle
+					        aria-controls="password">
+					    表示
+					</button>
+					
+				    <p
+				            th:if="${#fields.hasErrors('password')}"
+				            th:errors="*{password}">
+				    </p>
+				</div>
+				
+				<div>
+				    <label for="passwordConfirmation">パスワード（確認）</label>
+
+					<input
+					        type="password"
+					        id="passwordConfirmation"
+					        autocomplete="new-password"
+							required
+					        th:field="*{passwordConfirmation}">
+
+					<button
+					        type="button"
+					        data-password-toggle
+					        aria-controls="passwordConfirmation">
+					    表示
+					</button>
+					
+				    <p
+				            th:if="${#fields.hasErrors('passwordConfirmation')}"
+				            th:errors="*{passwordConfirmation}">
+				    </p>
+				</div>
+				
+				<p>
+				    ※初期版ではパスワード再設定機能には対応していません。
+				</p>
+				
+				<button type="submit">
+				    ユーザー登録
+				</button>
+
+		</form>
+		
+		<a th:href="@{/}">
+		    トップへ戻る
+		</a>
+		
+    </main>
+	
+	<div th:replace="~{fragments/footer :: footer}"></div>
+	
+	<script th:src="@{/js/password-toggle.js}" defer></script>
+	<script th:src="@{/js/register.js}" defer></script>
+
+</body>
+</html>
