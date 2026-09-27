@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ゲージ・目数・段数調整</title>
+</head>
+
+<body>
+
+	<th:block th:if="${isAuthenticated}">
+	    <div
+	        th:replace="~{fragments/header :: authenticatedHeader('gauge-adjustment')}">
+	    </div>
+	</th:block>
+
+	<th:block th:unless="${isAuthenticated}">
+	    <div
+	        th:replace="~{fragments/header :: guestHeader('default')}">
+	    </div>
+	</th:block>
+
+    <main class="gauge-adjustment-page">
+
+        <h1>ゲージ・目数・段数調整</h1>
+
+		<form
+		    class="gauge-adjustment-form"
+		    th:action="@{/gauge-adjustment}"
+		    th:object="${gaugeAdjustmentForm}"
+		    method="get">
+
+            <section class="adjustment-panel">
+                <h2>目数調整</h2>
+
+                <div>
+                    <label for="specifiedStitchGauge">
+                        指定目ゲージ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="specifiedStitchGauge"
+                        th:field="*{specifiedStitchGauge}">
+
+                    <span>目 / 10cm</span>
+
+					<p
+					    th:if="${#fields.hasErrors('specifiedStitchGauge')}"
+					    th:text="${#fields.errors('specifiedStitchGauge')[0]}">
+					</p>
+                </div>
+
+                <div>
+                    <label for="measuredStitchGauge">
+                        実測目ゲージ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="measuredStitchGauge"
+                        th:field="*{measuredStitchGauge}">
+
+                    <span>目 / 10cm</span>
+
+					<p
+					    th:if="${#fields.hasErrors('measuredStitchGauge')}"
+					    th:text="${#fields.errors('measuredStitchGauge')[0]}">
+					</p>
+                </div>
+
+                <div>
+                    <label for="originalStitchCount">
+                        元の目数
+                    </label>
+
+                    <input
+                        type="text"
+                        id="originalStitchCount"
+                        th:field="*{originalStitchCount}">
+
+                    <span>目</span>
+
+					<p
+					    th:if="${#fields.hasErrors('originalStitchCount')}"
+					    th:text="${#fields.errors('originalStitchCount')[0]}">
+					</p>
+                </div>
+            </section>
+
+            <section class="adjustment-panel">
+                <h2>段数調整</h2>
+
+                <div>
+                    <label for="specifiedRowGauge">
+                        指定段ゲージ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="specifiedRowGauge"
+                        th:field="*{specifiedRowGauge}">
+
+                    <span>段 / 10cm</span>
+
+					<p
+					    th:if="${#fields.hasErrors('specifiedRowGauge')}"
+					    th:text="${#fields.errors('specifiedRowGauge')[0]}">
+					</p>
+                </div>
+
+                <div>
+                    <label for="measuredRowGauge">
+                        実測段ゲージ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="measuredRowGauge"
+                        th:field="*{measuredRowGauge}">
+
+                    <span>段 / 10cm</span>
+
+					<p
+					    th:if="${#fields.hasErrors('measuredRowGauge')}"
+					    th:text="${#fields.errors('measuredRowGauge')[0]}">
+					</p>
+                </div>
+
+                <div>
+                    <label for="originalRowCount">
+                        元の段数
+                    </label>
+
+                    <input
+                        type="text"
+                        id="originalRowCount"
+                        th:field="*{originalRowCount}">
+
+                    <span>段</span>
+
+					<p
+					    th:if="${#fields.hasErrors('originalRowCount')}"
+					    th:text="${#fields.errors('originalRowCount')[0]}">
+					</p>
+                </div>
+            </section>
+
+			<button
+			    class="calculate-button"
+			    type="submit">
+			    計算する
+			</button>
+
+        </form>
+		
+		<section th:if="${adjustmentResult != null}">
+
+		    <h2>計算結果</h2>
+
+		    <div th:if="${adjustmentResult.stitchCalculatedValue != null}">
+
+		        <h3>目数調整</h3>
+
+		        <p>
+		            指定目ゲージ：
+		            <span th:text="${gaugeAdjustmentForm.specifiedStitchGauge}"></span>
+		            目 / 10cm
+		        </p>
+
+		        <p>
+		            実測目ゲージ：
+		            <span th:text="${gaugeAdjustmentForm.measuredStitchGauge}"></span>
+		            目 / 10cm
+		        </p>
+
+		        <p>
+		            元の目数：
+		            <span th:text="${gaugeAdjustmentForm.originalStitchCount}"></span>
+		            目
+		        </p>
+
+		        <p>
+		            四捨五入前 計算値：
+		            <span
+		                th:text="${adjustmentResult.stitchCalculatedValue
+		                    .setScale(5, T(java.math.RoundingMode).HALF_UP)
+		                    .stripTrailingZeros()
+		                    .toPlainString()}">
+		            </span>
+		            目
+		        </p>
+
+		        <p>
+		            調整後の目数：
+		            <strong th:text="${adjustmentResult.adjustedStitchCount}"></strong>
+		            目
+		        </p>
+
+		    </div>
+
+		    <div th:if="${adjustmentResult.rowCalculatedValue != null}">
+
+		        <h3>段数調整</h3>
+
+		        <p>
+		            指定段ゲージ：
+		            <span th:text="${gaugeAdjustmentForm.specifiedRowGauge}"></span>
+		            段 / 10cm
+		        </p>
+
+		        <p>
+		            実測段ゲージ：
+		            <span th:text="${gaugeAdjustmentForm.measuredRowGauge}"></span>
+		            段 / 10cm
+		        </p>
+
+		        <p>
+		            元の段数：
+		            <span th:text="${gaugeAdjustmentForm.originalRowCount}"></span>
+		            段
+		        </p>
+
+		        <p>
+		            四捨五入前 計算値：
+		            <span
+		                th:text="${adjustmentResult.rowCalculatedValue
+		                    .setScale(5, T(java.math.RoundingMode).HALF_UP)
+		                    .stripTrailingZeros()
+		                    .toPlainString()}">
+		            </span>
+		            段
+		        </p>
+
+		        <p>
+		            調整後の段数：
+		            <strong th:text="${adjustmentResult.adjustedRowCount}"></strong>
+		            段
+		        </p>
+
+		    </div>
+
+		    <p>
+		        計算結果は目安です。
+		        実際に使用する糸と針で試し編みを行うことをおすすめします。
+		    </p>
+
+		</section>
+
+        <p>
+            <a th:href="@{/}">
+                トップへ戻る
+            </a>
+        </p>
+
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+
+</html>

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -247,5 +248,54 @@ class SecurityIntegrationTest {
             userRepository.delete(user);
             userRepository.flush();
         }
+    }
+    
+    @Test
+    void gaugeAdjustmentPageIsPublic() throws Exception {
+
+        mockMvc.perform(get("/gauge-adjustment"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("gauge-adjustment"))
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ログイン")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ユーザー登録")
+                        )
+                );
+    }
+    
+    @Test
+    void gaugeAdjustmentPageIsAvailableWhenAuthenticated() throws Exception {
+
+        KnittingUserPrincipal principal =
+                new KnittingUserPrincipal(
+                        1L,
+                        "testuser",
+                        "password-hash"
+                );
+
+        var authenticationToken =
+                new UsernamePasswordAuthenticationToken(
+                        principal,
+                        null,
+                        principal.getAuthorities()
+                );
+
+        mockMvc.perform(get("/gauge-adjustment")
+                .with(authentication(authenticationToken)))
+                .andExpect(status().isOk())
+                .andExpect(view().name("gauge-adjustment"))
+                .andExpect(model().attribute("isAuthenticated", true))
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString(
+                                        "id=\"global-menu-button\""
+                                )
+                        )
+                );
     }
 }
