@@ -316,4 +316,22 @@ class SecurityIntegrationTest {
                         )
                 );
     }
+    
+    @Test
+    void counterPageIsPublic() throws Exception {
+
+        mockMvc.perform(get("/counter"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("counter"))
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ログイン")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ユーザー登録")
+                        )
+                );
+    }
 }
