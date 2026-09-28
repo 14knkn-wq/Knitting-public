@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <title>2本取り・引き揃え計算</title>
+	
+	<script th:src="@{/js/yarn-combination.js}" defer></script>
+</head>
+
+<body>
+
+    <th:block th:if="${isAuthenticated}">
+        <div
+            th:replace="~{fragments/header :: authenticatedHeader('yarn-combination')}">
+        </div>
+    </th:block>
+
+    <th:block th:unless="${isAuthenticated}">
+        <div
+            th:replace="~{fragments/header :: guestHeader('default')}">
+        </div>
+    </th:block>
+
+    <main class="yarn-combination-page">
+
+        <h1>2本取り・引き揃え計算</h1>
+
+        <form
+            class="yarn-combination-form"
+            th:action="@{/yarn-combination}"
+            th:object="${yarnCombinationForm}"
+            method="get">
+
+            <input
+                type="hidden"
+                name="calculate"
+                value="true">
+
+            <section class="yarn-combination-mode">
+
+                <h2>計算方法</h2>
+
+                <label>
+                    <input
+                        type="radio"
+                        th:field="*{mode}"
+                        value="DOUBLE_STRAND">
+                    2本取り
+                </label>
+
+                <label>
+                    <input
+                        type="radio"
+                        th:field="*{mode}"
+                        value="COMBINATION">
+                    引き揃え
+                </label>
+
+                <p
+                    th:if="${#fields.hasErrors('mode')}"
+                    th:text="${#fields.errors('mode')[0]}">
+                </p>
+
+            </section>
+
+            <section
+                id="double-strand-inputs"
+                class="yarn-input-panel"
+                th:hidden="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).COMBINATION}">
+
+                <h2>2本取り</h2>
+
+                <p>
+                    1本分の毛糸の重量と長さを入力してください。
+                </p>
+
+                <div>
+                    <label for="doubleStrandWeight">
+                        重量
+                    </label>
+
+                    <input
+                        type="text"
+                        id="doubleStrandWeight"
+                        th:field="*{doubleStrandWeight}">
+
+                    <span>g</span>
+
+                    <p
+                        th:if="${#fields.hasErrors('doubleStrandWeight')}"
+                        th:text="${#fields.errors('doubleStrandWeight')[0]}">
+                    </p>
+                </div>
+
+                <div>
+                    <label for="doubleStrandLength">
+                        長さ
+                    </label>
+
+                    <input
+                        type="text"
+                        id="doubleStrandLength"
+                        th:field="*{doubleStrandLength}">
+
+                    <span>m</span>
+
+                    <p
+                        th:if="${#fields.hasErrors('doubleStrandLength')}"
+                        th:text="${#fields.errors('doubleStrandLength')[0]}">
+                    </p>
+                </div>
+
+            </section>
+
+            <section
+                id="combination-inputs"
+                class="yarn-input-panel"
+                th:hidden="${yarnCombinationForm.mode != T(com.example.demo.domain.YarnCombinationMode).COMBINATION}">
+
+                <h2>引き揃え</h2>
+
+                <div class="combination-yarn-panel">
+
+                    <section>
+                        <h3>糸1</h3>
+
+                        <div>
+                            <label for="yarn1Weight">
+                                重量
+                            </label>
+
+                            <input
+                                type="text"
+                                id="yarn1Weight"
+                                th:field="*{yarn1Weight}">
+
+                            <span>g</span>
+
+                            <p
+                                th:if="${#fields.hasErrors('yarn1Weight')}"
+                                th:text="${#fields.errors('yarn1Weight')[0]}">
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="yarn1Length">
+                                長さ
+                            </label>
+
+                            <input
+                                type="text"
+                                id="yarn1Length"
+                                th:field="*{yarn1Length}">
+
+                            <span>m</span>
+
+                            <p
+                                th:if="${#fields.hasErrors('yarn1Length')}"
+                                th:text="${#fields.errors('yarn1Length')[0]}">
+                            </p>
+                        </div>
+                    </section>
+
+                    <section>
+                        <h3>糸2</h3>
+
+                        <div>
+                            <label for="yarn2Weight">
+                                重量
+                            </label>
+
+                            <input
+                                type="text"
+                                id="yarn2Weight"
+                                th:field="*{yarn2Weight}">
+
+                            <span>g</span>
+
+                            <p
+                                th:if="${#fields.hasErrors('yarn2Weight')}"
+                                th:text="${#fields.errors('yarn2Weight')[0]}">
+                            </p>
+                        </div>
+
+                        <div>
+                            <label for="yarn2Length">
+                                長さ
+                            </label>
+
+                            <input
+                                type="text"
+                                id="yarn2Length"
+                                th:field="*{yarn2Length}">
+
+                            <span>m</span>
+
+                            <p
+                                th:if="${#fields.hasErrors('yarn2Length')}"
+                                th:text="${#fields.errors('yarn2Length')[0]}">
+                            </p>
+                        </div>
+                    </section>
+
+                </div>
+
+            </section>
+
+            <button
+                id="yarn-combination-calculate-button"
+                class="calculate-button"
+                type="submit">
+                計算する
+            </button>
+
+        </form>
+
+        <section
+            id="yarn-combination-result"
+            th:if="${combinationResult != null}">
+
+            <h2>計算結果</h2>
+
+            <section>
+                <h3>入力内容</h3>
+
+                <div
+                    th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).DOUBLE_STRAND}">
+
+                    <p>
+                        重量：
+                        <span th:text="${yarnCombinationForm.doubleStrandWeight}"></span>
+                        g
+                    </p>
+
+                    <p>
+                        長さ：
+                        <span th:text="${yarnCombinationForm.doubleStrandLength}"></span>
+                        m
+                    </p>
+
+                </div>
+
+                <div
+                    th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).COMBINATION}">
+
+                    <p>
+                        糸1 重量：
+                        <span th:text="${yarnCombinationForm.yarn1Weight}"></span>
+                        g
+                    </p>
+
+                    <p>
+                        糸1 長さ：
+                        <span th:text="${yarnCombinationForm.yarn1Length}"></span>
+                        m
+                    </p>
+
+                    <p>
+                        糸2 重量：
+                        <span th:text="${yarnCombinationForm.yarn2Weight}"></span>
+                        g
+                    </p>
+
+                    <p>
+                        糸2 長さ：
+                        <span th:text="${yarnCombinationForm.yarn2Length}"></span>
+                        m
+                    </p>
+
+                </div>
+            </section>
+
+            <p>
+                100gあたりの換算糸長：
+                <strong>
+                    約<span th:text="${combinationResult.lengthPer100g}"></span>m / 100g
+                </strong>
+            </p>
+
+            <p>
+                推定される毛糸の太さ：
+                <strong th:text="${combinationResult.thicknessLabel}"></strong>
+            </p>
+
+            <p>
+                推奨棒針：
+                <strong th:text="${combinationResult.knittingNeedleLabel}"></strong>
+            </p>
+
+            <p>
+                推奨かぎ針：
+                <strong th:text="${combinationResult.crochetHookLabel}"></strong>
+            </p>
+
+            <p>
+                <a th:href="@{/yarn-guide}">
+                    毛糸・推奨針号数対応表を見る
+                </a>
+            </p>
+
+            <p
+                id="yarn-combination-recalculate-message"
+                hidden>
+                入力内容が変更されています。再計算してください。
+            </p>
+
+            <div class="yarn-combination-notice">
+                <p>
+                    計算結果は目安です。
+                </p>
+
+                <p>
+                    太さ・推奨針は、一般的なウール系ストレートヤーンを基準としています。
+                </p>
+
+                <p>
+                    素材、撚り、膨らみ、毛足、糸の構造などによって、
+                    実際の太さや適した針サイズは異なります。
+                </p>
+
+                <p>
+                    商品にメーカー推奨値が記載されている場合はメーカー表示を優先し、
+                    実際の糸と針で試し編みすることをおすすめします。
+                </p>
+            </div>
+
+        </section>
+
+        <p>
+            <a th:href="@{/}">
+                トップへ戻る
+            </a>
+        </p>
+
+    </main>
+
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+</body>
+
+</html>

@@ -298,4 +298,22 @@ class SecurityIntegrationTest {
                         )
                 );
     }
+    
+    @Test
+    void yarnCombinationPageIsPublic() throws Exception {
+
+        mockMvc.perform(get("/yarn-combination"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("yarn-combination"))
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ログイン")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ユーザー登録")
+                        )
+                );
+    }
 }

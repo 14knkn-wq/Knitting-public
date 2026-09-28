@@ -91,7 +91,9 @@ MySQL
 | DTO | 必要な結果・表示データだけを受け渡す |
 | Thymeleaf / JavaScript | サーバー描画、補助的な画面操作、非同期保存。正式な業務検証はサーバー側で行う |
 
-パッケージはpackage by layerを基本とし、`controller`、`service`、`repository`、`entity`、`form`、必要時の`dto`、`security`、`config`、`exception`を使用する。詳細なクラス配置は第10章を正とする。
+パッケージはpackage by layerを基本とし、
+`controller`、`service`、`repository`、`entity`、`domain`、`form`、
+必要時の`dto`、`security`、`config`、`exception`を使用する。詳細なクラス配置は第10章を正とする。
 
 ### 共通実装原則
 
@@ -6104,6 +6106,7 @@ controller
 service
 repository
 entity
+domain
 form
 dto
 security
@@ -11807,6 +11810,7 @@ controller
 service
 repository
 entity
+domain
 form
 dto
 security
@@ -12541,29 +12545,7 @@ model.addAttribute(
 ### YarnThicknessStandardのパッケージ配置
 
 `YarnThicknessStandard` のJavaパッケージ配置は、
-本書作成時点では正式確定していません。
-
-既存のpackage-by-layer方針：
-
-```text
-controller
-service
-repository
-entity
-form
-dto
-security
-config
-exception
-```
-
-との整合を保ちながら、後続検討または実装前に決定します。
-
-`YarnThicknessStandard` はJPA Entity、DTO、Service、環境設定のいずれでもないため、
-既存パッケージのどこへ配置するか、
-または必要最小限の新規パッケージを追加するかを別途決定します。
-
-この未確定事項は、計算仕様・毛糸基準そのものの未確定を意味しません。
+S-05実装時に `com.example.demo.domain` として確定しました。
 
 ---
 
@@ -15851,9 +15833,7 @@ Rate Limitの物理実装場所は公開環境決定後に確定する。方式�
 
 ### B：該当機能の実装前までに決定
 
-| 対象 | 残事項 |
-|---|---|
-| 毛糸基準 | `YarnThicknessStandard`のJavaパッケージ配置。責務・保持データ・利用方法は確定済み |
+なし。
 
 ### C：実装時に調整可能
 
