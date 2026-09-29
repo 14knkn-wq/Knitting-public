@@ -334,4 +334,22 @@ class SecurityIntegrationTest {
                         )
                 );
     }
+    
+    @Test
+    void yarnGuidePageIsPublic() throws Exception {
+
+        mockMvc.perform(get("/yarn-guide"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("yarn-guide"))
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ログイン")
+                        )
+                )
+                .andExpect(
+                        content().string(
+                                org.hamcrest.Matchers.containsString("ユーザー登録")
+                        )
+                );
+    }
 }
