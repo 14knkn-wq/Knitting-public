@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+    <title>作品を登録 | Knitting</title>
+</head>
+
+<body>
+
+    <div
+        th:replace="~{fragments/header :: authenticatedHeader('work-new')}">
+    </div>
+
+    <main>
+
+        <h1>作品を登録</h1>
+
+		<form id="work-create-form"
+		      th:action="@{/works}"
+		      th:object="${workCreateForm}"
+		      method="post"
+		      enctype="multipart/form-data">
+
+            <input
+                type="hidden"
+                th:field="*{submissionToken}">
+
+            <div>
+                <label for="photo">
+                    作品写真
+                </label>
+
+                <div>
+                    <img
+                        id="photo-preview"
+                        th:src="@{/images/default-work.png}"
+                        alt="作品写真プレビュー">
+                </div>
+
+                <input
+                    type="file"
+                    id="photo"
+                    th:field="*{photo}"
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+                <p>
+                    JPEGまたはPNG・10MB以下
+                </p>
+
+                <p
+                    th:if="${#fields.hasErrors('photo')}"
+                    th:errors="*{photo}">
+                </p>
+            </div>
+
+            <div>
+                <label for="name">
+                    作品名
+                </label>
+
+                <input
+                    type="text"
+                    id="name"
+                    required
+                    th:field="*{name}">
+
+                <p
+                    th:if="${#fields.hasErrors('name')}"
+                    th:errors="*{name}">
+                </p>
+            </div>
+
+            <div>
+                <label for="category">
+                    カテゴリー
+                </label>
+
+                <select
+                    id="category"
+                    required
+                    th:field="*{category}">
+
+                    <option value="">
+                        選択してください
+                    </option>
+
+                    <option
+                        th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category.displayName}">
+                        カテゴリー
+                    </option>
+
+                </select>
+
+                <p
+                    th:if="${#fields.hasErrors('category')}"
+                    th:errors="*{category}">
+                </p>
+            </div>
+
+            <fieldset>
+                <legend>
+                    制作ステータス
+                </legend>
+
+                <div
+                    th:each="workStatus : ${workStatuses}">
+
+                    <label>
+                        <input
+                            type="radio"
+                            th:field="*{status}"
+                            th:value="${workStatus}"
+                            required>
+
+                        <span
+                            th:text="${workStatus.displayName}">
+                            ステータス
+                        </span>
+                    </label>
+
+                </div>
+
+                <p
+                    th:if="${#fields.hasErrors('status')}"
+                    th:errors="*{status}">
+                </p>
+            </fieldset>
+
+            <button type="submit" id="submit-button">登録する</button>
+
+        </form>
+
+        <p>
+            <a th:href="@{/}">
+                トップへ戻る
+            </a>
+        </p>
+
+    </main>
+
+    <footer
+        th:replace="~{fragments/footer :: footer}">
+    </footer>
+	
+	<script
+	    th:src="@{/js/work-create.js}"
+	    defer>
+	</script>
+
+</body>
+
+</html>

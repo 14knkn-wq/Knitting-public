@@ -11,7 +11,14 @@
     <main>
         <h1>エラー</h1>
 
-        <p>リクエストを正しく処理できませんでした。</p>
+		<p
+		    th:if="${errorMessage != null}"
+		    th:text="${errorMessage}">
+		</p>
+
+		<p th:unless="${errorMessage != null}">
+		    リクエストを正しく処理できませんでした。
+		</p>
 
         <p>
             <a th:href="@{/}">トップへ戻る</a>

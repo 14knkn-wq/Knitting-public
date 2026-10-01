@@ -10,6 +10,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 
 class GlobalExceptionHandlerTest {
@@ -53,6 +54,14 @@ class GlobalExceptionHandlerTest {
 
             return "ok";
         }
+        
+        @GetMapping("/test/upload-too-large")
+        String uploadTooLarge() {
+
+            throw new MaxUploadSizeExceededException(
+                    11 * 1024 * 1024
+            );
+        }
     }
     
     @Test
@@ -69,5 +78,20 @@ class GlobalExceptionHandlerTest {
         mockMvc.perform(get("/test/number/not-a-number"))
                 .andExpect(status().isBadRequest())
                 .andExpect(view().name("error/400"));
+    }
+    
+    @Test
+    void multipart上限超過時は10MB以下の案内を返す()
+            throws Exception {
+
+        mockMvc.perform(
+                get("/test/upload-too-large")
+        )
+                .andExpect(
+                        model().attribute(
+                                "errorMessage",
+                                "画像は10MB以下のファイルを選択してください。"
+                        )
+                );
     }
 }
