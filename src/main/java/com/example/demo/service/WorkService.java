@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.CompletedWorkSummary;
 import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Work;
@@ -48,7 +49,7 @@ public class WorkService {
         this.transactionTemplate =
                 transactionTemplate;
     }
-    
+
     private String saveCandidateImage(
             MultipartFile photo) {
 
@@ -60,7 +61,7 @@ public class WorkService {
 
         return workImageStorage.saveNewImage(photo);
     }
-    
+
     private User getAuthenticatedUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(
@@ -69,7 +70,7 @@ public class WorkService {
                         )
                 );
     }
-    
+
     private LocalDate determineCompletionDate(
             WorkStatus status) {
 
@@ -79,7 +80,7 @@ public class WorkService {
 
         return null;
     }
-    
+
     private Work createWorkEntity(
             User user,
             String name,
@@ -97,7 +98,7 @@ public class WorkService {
                 LocalDateTime.now(clock)
         );
     }
-    
+
     private Long saveWorkInTransaction(
             Long userId,
             String name,
@@ -134,7 +135,7 @@ public class WorkService {
 
         return workId;
     }
-    
+
     private InProgressWorkSummary toInProgressWorkSummary(
             Work work) {
 
@@ -143,6 +144,17 @@ public class WorkService {
                 work.getName(),
                 work.getStitchCount(),
                 work.getRowCount(),
+                work.getPhotoReference() != null
+        );
+    }
+
+    private CompletedWorkSummary toCompletedWorkSummary(
+            Work work) {
+
+        return new CompletedWorkSummary(
+                work.getId(),
+                work.getName(),
+                work.getCompletionDate(),
                 work.getPhotoReference() != null
         );
     }
@@ -184,6 +196,45 @@ public class WorkService {
 
         return works.map(
                 this::toInProgressWorkSummary
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<CompletedWorkSummary> getCompletedWorks(
+            Long userId,
+            WorkCategory category,
+            int pageIndex) {
+
+        User user = getAuthenticatedUser(userId);
+
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                10,
+                Sort.by(
+                        Sort.Order.desc("completionDate"),
+                        Sort.Order.desc("id")
+                )
+        );
+
+        Page<Work> works;
+
+        if (category == null) {
+            works = workRepository.findByUserAndStatus(
+                    user,
+                    WorkStatus.COMPLETED,
+                    pageable
+            );
+        } else {
+            works = workRepository.findByUserAndStatusAndCategory(
+                    user,
+                    WorkStatus.COMPLETED,
+                    category,
+                    pageable
+            );
+        }
+
+        return works.map(
+                this::toCompletedWorkSummary
         );
     }
 

@@ -6,6 +6,7 @@ import static org.mockito.Mockito.*;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
@@ -26,6 +27,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.demo.dto.CompletedWorkSummary;
 import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Work;
@@ -943,6 +945,317 @@ class WorkServiceTest {
                                         null,
                                         0,
                                         10
+                                )
+                );
+
+        assertEquals(
+                "認証ユーザーが見つかりません。",
+                exception.getMessage()
+        );
+
+        verifyNoInteractions(workRepository);
+    }
+
+    @Test
+    void 完成一覧取得では完成作品を10件固定かつ完成日とidの降順で取得してDTOへ変換する() {
+
+        User user = new User(
+                "completed-list@example.com",
+                "CompletedList123",
+                "{bcrypt}hashed-password",
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        1,
+                        12,
+                        0
+                )
+        );
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        Work noPhotoWork = new Work(
+                user,
+                "写真なし完成作品",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.COMPLETED,
+                LocalDate.of(
+                        2026,
+                        9,
+                        28
+                ),
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        14,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                noPhotoWork,
+                "id",
+                301L
+        );
+
+        Work photoWork = new Work(
+                user,
+                "写真あり完成作品",
+                "works/completed-photo.jpg",
+                WorkCategory.BAG,
+                WorkStatus.COMPLETED,
+                LocalDate.of(
+                        2026,
+                        9,
+                        29
+                ),
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        15,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                photoWork,
+                "id",
+                302L
+        );
+
+        when(
+                workRepository.findByUserAndStatus(
+                        eq(user),
+                        eq(WorkStatus.COMPLETED),
+                        any(Pageable.class)
+                )
+        ).thenReturn(
+                new PageImpl<>(
+                        List.of(
+                                photoWork,
+                                noPhotoWork
+                        )
+                )
+        );
+
+        Page<CompletedWorkSummary> result =
+                workService.getCompletedWorks(
+                        1L,
+                        null,
+                        2
+                );
+
+        assertEquals(
+                2,
+                result.getContent().size()
+        );
+
+        CompletedWorkSummary first =
+                result.getContent().get(0);
+
+        assertEquals(302L, first.id());
+        assertEquals(
+                "写真あり完成作品",
+                first.name()
+        );
+        assertEquals(
+                LocalDate.of(
+                        2026,
+                        9,
+                        29
+                ),
+                first.completionDate()
+        );
+        assertTrue(first.hasPhoto());
+
+        CompletedWorkSummary second =
+                result.getContent().get(1);
+
+        assertEquals(301L, second.id());
+        assertEquals(
+                "写真なし完成作品",
+                second.name()
+        );
+        assertEquals(
+                LocalDate.of(
+                        2026,
+                        9,
+                        28
+                ),
+                second.completionDate()
+        );
+        assertFalse(second.hasPhoto());
+
+        ArgumentCaptor<Pageable> pageableCaptor =
+                ArgumentCaptor.forClass(
+                        Pageable.class
+                );
+
+        verify(workRepository)
+                .findByUserAndStatus(
+                        eq(user),
+                        eq(WorkStatus.COMPLETED),
+                        pageableCaptor.capture()
+                );
+
+        Pageable pageable =
+                pageableCaptor.getValue();
+
+        assertEquals(
+                2,
+                pageable.getPageNumber()
+        );
+
+        assertEquals(
+                10,
+                pageable.getPageSize()
+        );
+
+        Sort.Order completionDateOrder =
+                pageable.getSort()
+                        .getOrderFor(
+                                "completionDate"
+                        );
+
+        assertNotNull(completionDateOrder);
+        assertTrue(
+                completionDateOrder.isDescending()
+        );
+
+        Sort.Order idOrder =
+                pageable.getSort()
+                        .getOrderFor("id");
+
+        assertNotNull(idOrder);
+        assertTrue(idOrder.isDescending());
+
+        verify(
+                workRepository,
+                never()
+        ).findByUserAndStatusAndCategory(
+                any(),
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    void 完成一覧のカテゴリー指定時はカテゴリー付きRepository検索を使用する() {
+
+        User user = new User(
+                "completed-category@example.com",
+                "CompletedCategory123",
+                "{bcrypt}hashed-password",
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        1,
+                        12,
+                        0
+                )
+        );
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        Work work = new Work(
+                user,
+                "完成した帽子",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.COMPLETED,
+                LocalDate.of(
+                        2026,
+                        9,
+                        29
+                ),
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        15,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                work,
+                "id",
+                401L
+        );
+
+        when(
+                workRepository
+                        .findByUserAndStatusAndCategory(
+                                eq(user),
+                                eq(
+                                        WorkStatus.COMPLETED
+                                ),
+                                eq(WorkCategory.HAT),
+                                any(Pageable.class)
+                        )
+        ).thenReturn(
+                new PageImpl<>(
+                        List.of(work)
+                )
+        );
+
+        Page<CompletedWorkSummary> result =
+                workService.getCompletedWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        0
+                );
+
+        assertEquals(
+                1,
+                result.getContent().size()
+        );
+
+        assertEquals(
+                401L,
+                result.getContent()
+                        .get(0)
+                        .id()
+        );
+
+        verify(workRepository)
+                .findByUserAndStatusAndCategory(
+                        eq(user),
+                        eq(WorkStatus.COMPLETED),
+                        eq(WorkCategory.HAT),
+                        any(Pageable.class)
+                );
+
+        verify(
+                workRepository,
+                never()
+        ).findByUserAndStatus(
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    void 完成一覧取得時に認証ユーザーが存在しなければ例外となる() {
+
+        when(userRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> workService
+                                .getCompletedWorks(
+                                        999L,
+                                        null,
+                                        0
                                 )
                 );
 

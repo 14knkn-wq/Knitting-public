@@ -135,6 +135,68 @@ public class WorkController {
         return "works/in-progress";
     }
 
+    @GetMapping("/completed")
+    public String showCompletedWorks(
+            @RequestParam(
+                    name = "category",
+                    required = false
+            )
+            WorkCategory category,
+            @RequestParam(
+                    name = "page",
+                    defaultValue = "1"
+            )
+            int page,
+            @AuthenticationPrincipal
+            KnittingUserPrincipal principal,
+            Model model,
+            HttpServletResponse response) {
+
+        if (page < 1) {
+            response.setStatus(
+                    HttpServletResponse.SC_BAD_REQUEST
+            );
+
+            return "error/400";
+        }
+
+        int pageIndex = page - 1;
+
+        var worksPage =
+                workService.getCompletedWorks(
+                        principal.getUserId(),
+                        category,
+                        pageIndex
+                );
+
+        if (page > 1
+                && page > worksPage.getTotalPages()) {
+
+            response.setStatus(
+                    HttpServletResponse.SC_BAD_REQUEST
+            );
+
+            return "error/400";
+        }
+
+        model.addAttribute(
+                "worksPage",
+                worksPage
+        );
+
+        model.addAttribute(
+                "categories",
+                WorkCategory.values()
+        );
+
+        model.addAttribute(
+                "selectedCategory",
+                category
+        );
+
+        return "works/completed";
+    }
+
     @PostMapping(
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )

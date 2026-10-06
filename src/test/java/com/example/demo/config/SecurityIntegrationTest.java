@@ -499,4 +499,82 @@ class SecurityIntegrationTest {
             userRepository.flush();
         }
     }
+
+    @Test
+    void completedWorksPageRedirectsToLoginWhenUnauthenticated()
+            throws Exception {
+
+        mockMvc.perform(get("/works/completed"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(
+                        redirectedUrl("/login?required")
+                );
+    }
+
+    @Test
+    void completedWorksPageIsAvailableWhenAuthenticated()
+            throws Exception {
+
+        User user = new User(
+                "completed-security@example.com",
+                "completedsecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        userRepository.saveAndFlush(user);
+
+        try {
+            KnittingUserPrincipal principal =
+                    new KnittingUserPrincipal(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getPasswordHash()
+                    );
+
+            var authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities()
+                    );
+
+            mockMvc.perform(
+                    get("/works/completed")
+                            .with(
+                                    authentication(
+                                            authenticationToken
+                                    )
+                            )
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            view().name(
+                                    "works/completed"
+                            )
+                    )
+                    .andExpect(
+                            model().attributeExists(
+                                    "worksPage"
+                            )
+                    )
+                    .andExpect(
+                            model().attributeExists(
+                                    "categories"
+                            )
+                    )
+                    .andExpect(
+                            content().string(
+                                    org.hamcrest.Matchers
+                                            .containsString(
+                                                    "完成した作品はありません。"
+                                            )
+                            )
+                    );
+
+        } finally {
+            userRepository.delete(user);
+            userRepository.flush();
+        }
+    }
 }

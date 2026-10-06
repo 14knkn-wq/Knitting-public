@@ -1,14 +1,17 @@
-section[aria-label="制作中作品一覧"] {
+section[aria-label="制作中作品一覧"],
+section[aria-label="完成作品一覧"] {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
 }
 
-section[aria-label="制作中作品一覧"] article {
+section[aria-label="制作中作品一覧"] article,
+section[aria-label="完成作品一覧"] article {
     min-width: 0;
 }
 
-section[aria-label="制作中作品一覧"] article img {
+section[aria-label="制作中作品一覧"] article img,
+section[aria-label="完成作品一覧"] article img {
     display: block;
     width: 100%;
     aspect-ratio: 4 / 3;
@@ -32,6 +35,7 @@ section[aria-label="制作中作品一覧"] article img {
 @media (max-width: 767px) {
 
     section[aria-label="制作中作品一覧"],
+    section[aria-label="完成作品一覧"],
     .public-feature-list {
         grid-template-columns: 1fr;
     }

@@ -3,6 +3,7 @@ package com.example.demo.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -16,6 +17,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 
+import com.example.demo.dto.CompletedWorkSummary;
 import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.WorkCategory;
 import com.example.demo.entity.WorkStatus;
@@ -927,6 +929,265 @@ class WorkControllerTest {
                         null,
                         0,
                         10
+                );
+    }
+
+    @Test
+    void 完成一覧の1ページ目を表示できる() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        CompletedWorkSummary work =
+                new CompletedWorkSummary(
+                        301L,
+                        "完成作品",
+                        LocalDate.of(
+                                2026,
+                                9,
+                                29
+                        ),
+                        false
+                );
+
+        var worksPage =
+                new PageImpl<>(
+                        List.of(work),
+                        PageRequest.of(0, 10),
+                        1
+                );
+
+        when(
+                workService.getCompletedWorks(
+                        1L,
+                        null,
+                        0
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showCompletedWorks(
+                        null,
+                        1,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "works/completed",
+                viewName
+        );
+
+        assertEquals(
+                200,
+                response.getStatus()
+        );
+
+        assertSame(
+                worksPage,
+                model.getAttribute("worksPage")
+        );
+
+        assertArrayEquals(
+                WorkCategory.values(),
+                (WorkCategory[]) model.getAttribute(
+                        "categories"
+                )
+        );
+
+        assertNull(
+                model.getAttribute(
+                        "selectedCategory"
+                )
+        );
+
+        verify(workService)
+                .getCompletedWorks(
+                        1L,
+                        null,
+                        0
+                );
+    }
+
+    @Test
+    void 完成一覧ではカテゴリーとページ番号をServiceへ渡せる() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        CompletedWorkSummary work =
+                new CompletedWorkSummary(
+                        401L,
+                        "完成した帽子",
+                        LocalDate.of(
+                                2026,
+                                9,
+                                28
+                        ),
+                        true
+                );
+
+        var worksPage =
+                new PageImpl<>(
+                        List.of(work),
+                        PageRequest.of(1, 10),
+                        15
+                );
+
+        when(
+                workService.getCompletedWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        1
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showCompletedWorks(
+                        WorkCategory.HAT,
+                        2,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "works/completed",
+                viewName
+        );
+
+        assertEquals(
+                200,
+                response.getStatus()
+        );
+
+        assertSame(
+                worksPage,
+                model.getAttribute("worksPage")
+        );
+
+        assertEquals(
+                WorkCategory.HAT,
+                model.getAttribute(
+                        "selectedCategory"
+                )
+        );
+
+        verify(workService)
+                .getCompletedWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        1
+                );
+    }
+
+    @Test
+    void 完成一覧でpageが1未満なら400としてServiceを呼ばない() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showCompletedWorks(
+                        null,
+                        0,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "error/400",
+                viewName
+        );
+
+        assertEquals(
+                400,
+                response.getStatus()
+        );
+
+        verifyNoInteractions(workService);
+    }
+
+    @Test
+    void 完成一覧で総ページ数を超えるpageなら400とする() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        var worksPage =
+                new PageImpl<CompletedWorkSummary>(
+                        List.of(),
+                        PageRequest.of(1, 10),
+                        10
+                );
+
+        when(
+                workService.getCompletedWorks(
+                        1L,
+                        null,
+                        1
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showCompletedWorks(
+                        null,
+                        2,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "error/400",
+                viewName
+        );
+
+        assertEquals(
+                400,
+                response.getStatus()
+        );
+
+        verify(workService)
+                .getCompletedWorks(
+                        1L,
+                        null,
+                        1
                 );
     }
 }
