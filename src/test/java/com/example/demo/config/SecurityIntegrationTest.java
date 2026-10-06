@@ -37,6 +37,75 @@ class SecurityIntegrationTest {
     private PasswordEncoder passwordEncoder;
 
     @Test
+    void topPageIsPublic() throws Exception {
+
+        mockMvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("home"))
+                .andExpect(
+                        model().attribute(
+                                "isAuthenticated",
+                                false
+                        )
+                );
+    }
+
+    @Test
+    void topPageIsAvailableWhenAuthenticated() throws Exception {
+
+        User user = new User(
+                "home-security@example.com",
+                "homesecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        userRepository.saveAndFlush(user);
+
+        try {
+            KnittingUserPrincipal principal =
+                    new KnittingUserPrincipal(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getPasswordHash()
+                    );
+
+            var authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities()
+                    );
+
+            mockMvc.perform(
+                    get("/")
+                            .with(
+                                    authentication(
+                                            authenticationToken
+                                    )
+                            )
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(view().name("home"))
+                    .andExpect(
+                            model().attribute(
+                                    "isAuthenticated",
+                                    true
+                            )
+                    )
+                    .andExpect(
+                            model().attributeExists(
+                                    "inProgressWorks"
+                            )
+                    );
+
+        } finally {
+            userRepository.delete(user);
+            userRepository.flush();
+        }
+    }
+
+    @Test
     void loginPageIsPublic() throws Exception {
 
         mockMvc.perform(get("/login"))

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>Knitting</title>
+
+    <link
+        rel="stylesheet"
+        th:href="@{/css/work-list.css}">
+</head>
+
+<body>
+
+    <th:block th:if="${isAuthenticated}">
+        <div
+            th:replace="~{fragments/header :: authenticatedHeader('home')}">
+        </div>
+    </th:block>
+
+    <th:block th:unless="${isAuthenticated}">
+        <div
+            th:replace="~{fragments/header :: guestHeader('default')}">
+        </div>
+    </th:block>
+
+    <main>
+
+        <!-- 未ログイン -->
+        <section th:unless="${isAuthenticated}">
+
+            <h1>
+                編み物の計算と記録を、もっとかんたんに。
+            </h1>
+
+            <p>
+                編み物に必要な計算機能は、
+                ログインせずに利用できます。
+            </p>
+
+        </section>
+
+        <!-- ログイン後：制作中作品 -->
+        <section th:if="${isAuthenticated}">
+
+            <div>
+
+                <h1>制作中の作品</h1>
+
+                <a th:href="@{/works/new}">
+                    ＋ 作品を登録
+                </a>
+
+            </div>
+
+            <!-- 制作中作品が0件 -->
+            <div th:if="${inProgressWorks.totalElements == 0}">
+
+                <p>
+                    制作中の作品はありません。
+                </p>
+
+                <p>
+                    <a th:href="@{/works/new}">
+                        作品を登録する
+                    </a>
+                </p>
+
+            </div>
+
+            <!-- 制作中作品あり -->
+            <section
+                th:if="${inProgressWorks.totalElements > 0}"
+                aria-label="制作中作品一覧">
+
+                <article
+                    th:each="work : ${inProgressWorks.content}">
+
+                    <a
+                        th:href="@{/works/{id}(
+                            id=${work.id}
+                        )}">
+
+                        <div>
+
+                            <img
+                                th:if="${work.hasPhoto}"
+                                th:src="@{/works/{id}/image(
+                                    id=${work.id}
+                                )}"
+                                th:alt="${work.name + 'の作品写真'}">
+
+                            <img
+                                th:unless="${work.hasPhoto}"
+                                th:src="@{/images/default-work.png}"
+                                th:alt="${work.name + 'の作品写真'}">
+
+                        </div>
+
+                        <h2
+                            class="work-card-name"
+                            th:text="${work.name}">
+                            作品名
+                        </h2>
+
+                        <p>
+                            目数
+                            <span th:text="${work.stitchCount}">
+                                0
+                            </span>
+                            ・段数
+                            <span th:text="${work.rowCount}">
+                                0
+                            </span>
+                        </p>
+
+                    </a>
+
+                </article>
+
+            </section>
+
+            <p>
+                <a th:href="@{/works/in-progress}">
+                    制作中一覧を見る
+                </a>
+            </p>
+
+        </section>
+
+        <!-- 公開機能 -->
+        <section aria-labelledby="public-features-heading">
+
+            <h2 id="public-features-heading">
+                編み物支援機能
+            </h2>
+
+            <div class="public-feature-list">
+
+                <a th:href="@{/gauge-adjustment}">
+                    <h3>
+                        ゲージ・目数・段数調整
+                    </h3>
+                </a>
+
+                <a th:href="@{/yarn-combination}">
+                    <h3>
+                        2本取り・引き揃え計算
+                    </h3>
+                </a>
+
+                <a th:href="@{/counter}">
+                    <h3>
+                        簡易カウンター
+                    </h3>
+                </a>
+
+                <a th:href="@{/yarn-guide}">
+                    <h3>
+                        毛糸・推奨針号数対応表
+                    </h3>
+                </a>
+
+            </div>
+
+        </section>
+
+        <!-- 未ログイン：登録案内 -->
+        <section th:unless="${isAuthenticated}">
+
+            <h2>
+                作品を記録する
+            </h2>
+
+            <p>
+                ユーザー登録すると、
+                作品や制作状況を記録できます。
+            </p>
+
+            <p>
+                <a th:href="@{/register}">
+                    ユーザー登録
+                </a>
+            </p>
+
+            <p>
+                すでに登録済みの方は
+                <a th:href="@{/login}">
+                    ログイン
+                </a>
+            </p>
+
+        </section>
+
+    </main>
+
+    <div
+        th:replace="~{fragments/footer :: footer}">
+    </div>
+
+</body>
+
+</html>

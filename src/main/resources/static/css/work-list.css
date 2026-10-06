@@ -23,9 +23,16 @@ section[aria-label="制作中作品一覧"] article img {
     -webkit-line-clamp: 2;
 }
 
+.public-feature-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
 @media (max-width: 767px) {
 
-    section[aria-label="制作中作品一覧"] {
+    section[aria-label="制作中作品一覧"],
+    .public-feature-list {
         grid-template-columns: 1fr;
     }
 }
