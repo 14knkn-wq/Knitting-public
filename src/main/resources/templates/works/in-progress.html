@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>制作中一覧 | Knitting</title>
+	<link
+	    rel="stylesheet"
+	    th:href="@{/css/work-list.css}">
+</head>
+
+<body>
+
+    <div
+        th:replace="~{fragments/header :: authenticatedHeader('in-progress')}">
+    </div>
+
+    <main>
+
+        <nav aria-label="作品一覧の切り替え">
+
+            <a
+                th:href="@{/works/in-progress}"
+                aria-current="page">
+                制作中
+            </a>
+
+            <a th:href="@{/works/completed}">
+                完成
+            </a>
+
+        </nav>
+
+        <div>
+
+            <h1>制作中の作品</h1>
+
+            <a th:href="@{/works/new}">
+                ＋ 作品を登録
+            </a>
+
+        </div>
+
+        <div>
+
+            <label for="work-category-filter">
+                カテゴリー
+            </label>
+
+            <select id="work-category-filter">
+
+                <option
+                    value=""
+                    th:selected="${selectedCategory == null}">
+                    すべて
+                </option>
+
+                <option
+                    th:each="category : ${categories}"
+                    th:value="${category}"
+                    th:text="${category.displayName}"
+                    th:selected="${selectedCategory == category}">
+                    カテゴリー
+                </option>
+
+            </select>
+
+        </div>
+
+        <!-- 全体で制作中作品が0件 -->
+        <section
+            th:if="${worksPage.totalElements == 0
+                    and selectedCategory == null}">
+
+            <p>
+                制作中の作品はありません。
+            </p>
+
+            <p>
+                <a th:href="@{/works/new}">
+                    作品を登録する
+                </a>
+            </p>
+
+        </section>
+
+        <!-- カテゴリー絞り込み結果が0件 -->
+        <section
+            th:if="${worksPage.totalElements == 0
+                    and selectedCategory != null}">
+
+            <p>
+                このカテゴリーの制作中作品はありません。
+            </p>
+
+            <p>
+                <a th:href="@{/works/in-progress}">
+                    すべて表示
+                </a>
+            </p>
+
+        </section>
+
+        <!-- 作品一覧 -->
+        <section
+            th:if="${worksPage.totalElements > 0}"
+            aria-label="制作中作品一覧">
+
+            <article
+                th:each="work : ${worksPage.content}">
+
+                <a
+                    th:href="@{/works/{id}(
+                        id=${work.id},
+                        from='in-progress'
+                    )}">
+
+                    <div>
+
+                        <img
+                            th:if="${work.hasPhoto}"
+                            th:src="@{/works/{id}/image(
+                                id=${work.id}
+                            )}"
+                            th:alt="${work.name + 'の作品写真'}">
+
+                        <img
+                            th:unless="${work.hasPhoto}"
+                            th:src="@{/images/default-work.png}"
+                            th:alt="${work.name + 'の作品写真'}">
+
+                    </div>
+
+                    <h2
+                        class="work-card-name"
+                        th:text="${work.name}">
+                        作品名
+                    </h2>
+
+                    <p>
+                        目数
+                        <span th:text="${work.stitchCount}">
+                            0
+                        </span>
+                        ・段数
+                        <span th:text="${work.rowCount}">
+                            0
+                        </span>
+                    </p>
+
+                </a>
+
+            </article>
+
+        </section>
+
+        <!-- ページネーション -->
+        <nav
+            th:if="${worksPage.totalPages > 1}"
+            th:with="
+                currentPage=${worksPage.number + 1},
+                totalPages=${worksPage.totalPages}
+            "
+            aria-label="ページ切り替え">
+
+            <!-- 前へ -->
+            <span
+                th:if="${worksPage.first}"
+                aria-disabled="true">
+                前へ
+            </span>
+
+            <a
+                th:unless="${worksPage.first}"
+                th:href="${
+                    currentPage - 1 == 1
+                    ?
+                    (
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress'
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                    )
+                    :
+                    (
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress?page='
+                        + (currentPage - 1)
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                        + '&page='
+                        + (currentPage - 1)
+                    )
+                }">
+                前へ
+            </a>
+
+            <!-- 総ページ数7以下 -->
+            <span th:if="${totalPages <= 7}">
+
+                <span
+                    th:each="pageNumber :
+                        ${#numbers.sequence(1, totalPages)}">
+
+                    <span
+                        th:if="${pageNumber == currentPage}"
+                        th:text="${pageNumber}"
+                        aria-current="page">
+                        1
+                    </span>
+
+                    <a
+                        th:unless="${pageNumber == currentPage}"
+                        th:href="${
+                            pageNumber == 1
+                            ?
+                            (
+                                selectedCategory == null
+                                ?
+                                '/works/in-progress'
+                                :
+                                '/works/in-progress?category='
+                                + selectedCategory
+                            )
+                            :
+                            (
+                                selectedCategory == null
+                                ?
+                                '/works/in-progress?page='
+                                + pageNumber
+                                :
+                                '/works/in-progress?category='
+                                + selectedCategory
+                                + '&page='
+                                + pageNumber
+                            )
+                        }"
+                        th:text="${pageNumber}">
+                        1
+                    </a>
+
+                </span>
+
+            </span>
+
+            <!-- 総ページ数8以上・現在ページ1～4 -->
+            <span
+                th:if="${totalPages >= 8
+                        and currentPage <= 4}">
+
+                <span
+                    th:each="pageNumber :
+                        ${#numbers.sequence(1, 5)}">
+
+                    <span
+                        th:if="${pageNumber == currentPage}"
+                        th:text="${pageNumber}"
+                        aria-current="page">
+                        1
+                    </span>
+
+                    <a
+                        th:unless="${pageNumber == currentPage}"
+                        th:href="${
+                            pageNumber == 1
+                            ?
+                            (
+                                selectedCategory == null
+                                ?
+                                '/works/in-progress'
+                                :
+                                '/works/in-progress?category='
+                                + selectedCategory
+                            )
+                            :
+                            (
+                                selectedCategory == null
+                                ?
+                                '/works/in-progress?page='
+                                + pageNumber
+                                :
+                                '/works/in-progress?category='
+                                + selectedCategory
+                                + '&page='
+                                + pageNumber
+                            )
+                        }"
+                        th:text="${pageNumber}">
+                        1
+                    </a>
+
+                </span>
+
+                <span aria-hidden="true">
+                    …
+                </span>
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress?page='
+                        + totalPages
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                        + '&page='
+                        + totalPages
+                    }"
+                    th:text="${totalPages}">
+                    8
+                </a>
+
+            </span>
+
+            <!-- 総ページ数8以上・中央付近 -->
+            <span
+                th:if="${totalPages >= 8
+                        and currentPage >= 5
+                        and currentPage <= totalPages - 4}">
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress'
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                    }">
+                    1
+                </a>
+
+                <span aria-hidden="true">
+                    …
+                </span>
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress?page='
+                        + (currentPage - 1)
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                        + '&page='
+                        + (currentPage - 1)
+                    }"
+                    th:text="${currentPage - 1}">
+                    4
+                </a>
+
+                <span
+                    th:text="${currentPage}"
+                    aria-current="page">
+                    5
+                </span>
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress?page='
+                        + (currentPage + 1)
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                        + '&page='
+                        + (currentPage + 1)
+                    }"
+                    th:text="${currentPage + 1}">
+                    6
+                </a>
+
+                <span aria-hidden="true">
+                    …
+                </span>
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress?page='
+                        + totalPages
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                        + '&page='
+                        + totalPages
+                    }"
+                    th:text="${totalPages}">
+                    8
+                </a>
+
+            </span>
+
+            <!-- 総ページ数8以上・末尾4ページ付近 -->
+            <span
+                th:if="${totalPages >= 8
+                        and currentPage >= totalPages - 3}">
+
+                <a
+                    th:href="${
+                        selectedCategory == null
+                        ?
+                        '/works/in-progress'
+                        :
+                        '/works/in-progress?category='
+                        + selectedCategory
+                    }">
+                    1
+                </a>
+
+                <span aria-hidden="true">
+                    …
+                </span>
+
+                <span
+                    th:each="pageNumber :
+                        ${#numbers.sequence(
+                            totalPages - 4,
+                            totalPages
+                        )}">
+
+                    <span
+                        th:if="${pageNumber == currentPage}"
+                        th:text="${pageNumber}"
+                        aria-current="page">
+                        8
+                    </span>
+
+                    <a
+                        th:unless="${pageNumber == currentPage}"
+                        th:href="${
+                            selectedCategory == null
+                            ?
+                            '/works/in-progress?page='
+                            + pageNumber
+                            :
+                            '/works/in-progress?category='
+                            + selectedCategory
+                            + '&page='
+                            + pageNumber
+                        }"
+                        th:text="${pageNumber}">
+                        8
+                    </a>
+
+                </span>
+
+            </span>
+
+            <!-- 次へ -->
+            <span
+                th:if="${worksPage.last}"
+                aria-disabled="true">
+                次へ
+            </span>
+
+            <a
+                th:unless="${worksPage.last}"
+                th:href="${
+                    selectedCategory == null
+                    ?
+                    '/works/in-progress?page='
+                    + (currentPage + 1)
+                    :
+                    '/works/in-progress?category='
+                    + selectedCategory
+                    + '&page='
+                    + (currentPage + 1)
+                }">
+                次へ
+            </a>
+
+        </nav>
+
+    </main>
+
+    <footer
+        th:replace="~{fragments/footer :: footer}">
+    </footer>
+	
+	<script
+	    th:src="@{/js/work-list.js}"
+	    defer>
+	</script>
+
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 
 import org.springframework.http.MediaType;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.entity.WorkCategory;
 import com.example.demo.entity.WorkStatus;
@@ -70,6 +72,69 @@ public class WorkController {
         return "works/new";
     }
     
+    @GetMapping("/in-progress")
+    public String showInProgressWorks(
+            @RequestParam(
+                    name = "category",
+                    required = false
+            )
+            WorkCategory category,
+            @RequestParam(
+                    name = "page",
+                    defaultValue = "1"
+            )
+            int page,
+            @AuthenticationPrincipal
+            KnittingUserPrincipal principal,
+            Model model,
+            HttpServletResponse response) {
+
+        if (page < 1) {
+            response.setStatus(
+                    HttpServletResponse.SC_BAD_REQUEST
+            );
+
+            return "error/400";
+        }
+
+        int pageIndex = page - 1;
+
+        var worksPage =
+                workService.getInProgressWorks(
+                        principal.getUserId(),
+                        category,
+                        pageIndex,
+                        10
+                );
+
+        if (page > 1
+                && page > worksPage.getTotalPages()) {
+
+            response.setStatus(
+                    HttpServletResponse.SC_BAD_REQUEST
+            );
+
+            return "error/400";
+        }
+
+        model.addAttribute(
+                "worksPage",
+                worksPage
+        );
+
+        model.addAttribute(
+                "categories",
+                WorkCategory.values()
+        );
+
+        model.addAttribute(
+                "selectedCategory",
+                category
+        );
+
+        return "works/in-progress";
+    }
+
     @PostMapping(
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )

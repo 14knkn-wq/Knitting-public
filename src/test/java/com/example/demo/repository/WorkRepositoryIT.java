@@ -108,4 +108,158 @@ class WorkRepositoryIT {
 
         assertThat(result).isEmpty();
     }
+
+    @Test
+    void 制作中一覧用検索では本人の制作中作品だけ取得できる() {
+
+        User owner = new User(
+            "list-owner@example.com",
+            "ListOwner123",
+            "{bcrypt}dummy",
+            LocalDateTime.of(2026, 10, 1, 10, 0)
+        );
+
+        User otherUser = new User(
+            "list-other@example.com",
+            "ListOther123",
+            "{bcrypt}dummy",
+            LocalDateTime.of(2026, 10, 1, 10, 0)
+        );
+
+        userRepository.saveAndFlush(owner);
+        userRepository.saveAndFlush(otherUser);
+
+        Work ownerInProgress = new Work(
+            owner,
+            "本人の制作中作品",
+            null,
+            WorkCategory.HAT,
+            WorkStatus.IN_PROGRESS,
+            null,
+            LocalDateTime.of(2026, 10, 1, 11, 0)
+        );
+
+        Work ownerCompleted = new Work(
+            owner,
+            "本人の完成作品",
+            null,
+            WorkCategory.SCARF,
+            WorkStatus.COMPLETED,
+            java.time.LocalDate.of(2026, 10, 1),
+            LocalDateTime.of(2026, 10, 1, 12, 0)
+        );
+
+        Work otherInProgress = new Work(
+            otherUser,
+            "他ユーザーの制作中作品",
+            null,
+            WorkCategory.BAG,
+            WorkStatus.IN_PROGRESS,
+            null,
+            LocalDateTime.of(2026, 10, 1, 13, 0)
+        );
+
+        workRepository.saveAndFlush(ownerInProgress);
+        workRepository.saveAndFlush(ownerCompleted);
+        workRepository.saveAndFlush(otherInProgress);
+
+        var result =
+            workRepository.findByUserAndStatus(
+                owner,
+                WorkStatus.IN_PROGRESS,
+                org.springframework.data.domain.PageRequest.of(
+                    0,
+                    10
+                )
+            );
+
+        assertThat(result.getContent())
+            .containsExactly(ownerInProgress);
+
+        assertThat(result.getTotalElements())
+        .isEqualTo(1);
+}
+
+@Test
+void カテゴリー指定検索では指定カテゴリーの制作中作品だけ取得できる() {
+
+    User owner = new User(
+        "category-owner@example.com",
+        "CategoryOwner123",
+        "{bcrypt}dummy",
+        LocalDateTime.of(2026, 10, 1, 10, 0)
+    );
+
+    User otherUser = new User(
+        "category-other@example.com",
+        "CategoryOther123",
+        "{bcrypt}dummy",
+        LocalDateTime.of(2026, 10, 1, 10, 0)
+    );
+
+    userRepository.saveAndFlush(owner);
+    userRepository.saveAndFlush(otherUser);
+
+    Work target = new Work(
+        owner,
+        "本人の制作中帽子",
+        null,
+        WorkCategory.HAT,
+        WorkStatus.IN_PROGRESS,
+        null,
+        LocalDateTime.of(2026, 10, 1, 11, 0)
+    );
+
+    Work differentCategory = new Work(
+        owner,
+        "本人の制作中マフラー",
+        null,
+        WorkCategory.SCARF,
+        WorkStatus.IN_PROGRESS,
+        null,
+        LocalDateTime.of(2026, 10, 1, 12, 0)
+    );
+
+    Work completedHat = new Work(
+        owner,
+        "本人の完成帽子",
+        null,
+        WorkCategory.HAT,
+        WorkStatus.COMPLETED,
+        java.time.LocalDate.of(2026, 10, 1),
+        LocalDateTime.of(2026, 10, 1, 13, 0)
+    );
+
+    Work otherUserHat = new Work(
+        otherUser,
+        "他ユーザーの制作中帽子",
+        null,
+        WorkCategory.HAT,
+        WorkStatus.IN_PROGRESS,
+        null,
+        LocalDateTime.of(2026, 10, 1, 14, 0)
+    );
+
+    workRepository.saveAndFlush(target);
+    workRepository.saveAndFlush(differentCategory);
+    workRepository.saveAndFlush(completedHat);
+    workRepository.saveAndFlush(otherUserHat);
+
+    var result =
+        workRepository.findByUserAndStatusAndCategory(
+            owner,
+            WorkStatus.IN_PROGRESS,
+            WorkCategory.HAT,
+            org.springframework.data.domain.PageRequest.of(
+                0,
+                10
+            )
+        );
+
+    assertThat(result.getContent())
+        .containsExactly(target);
+
+    assertThat(result.getTotalElements())
+        .isEqualTo(1);
+}
 }

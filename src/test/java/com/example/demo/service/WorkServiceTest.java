@@ -8,6 +8,7 @@ import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -16,11 +17,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Work;
 import com.example.demo.entity.WorkCategory;
@@ -635,5 +641,316 @@ class WorkServiceTest {
         ).complete(
                 "token-zero-byte"
         );
+    }
+
+    @Test
+    void 制作中一覧取得では指定ページと並び順を使用してDTOへ変換する() {
+
+        User user = new User(
+                "list@example.com",
+                "ListUser123",
+                "{bcrypt}hashed-password",
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        1,
+                        12,
+                        0
+                )
+        );
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        Work noPhotoWork = new Work(
+                user,
+                "写真なし作品",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.IN_PROGRESS,
+                null,
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        14,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                noPhotoWork,
+                "id",
+                101L
+        );
+
+        ReflectionTestUtils.setField(
+                noPhotoWork,
+                "stitchCount",
+                25
+        );
+
+        ReflectionTestUtils.setField(
+                noPhotoWork,
+                "rowCount",
+                40
+        );
+
+        Work photoWork = new Work(
+                user,
+                "写真あり作品",
+                "works/test-photo.jpg",
+                WorkCategory.BAG,
+                WorkStatus.IN_PROGRESS,
+                null,
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        15,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                photoWork,
+                "id",
+                102L
+        );
+
+        ReflectionTestUtils.setField(
+                photoWork,
+                "stitchCount",
+                50
+        );
+
+        ReflectionTestUtils.setField(
+                photoWork,
+                "rowCount",
+                60
+        );
+
+        when(
+                workRepository.findByUserAndStatus(
+                        eq(user),
+                        eq(WorkStatus.IN_PROGRESS),
+                        any(Pageable.class)
+                )
+        ).thenReturn(
+                new PageImpl<>(
+                        List.of(
+                                photoWork,
+                                noPhotoWork
+                        )
+                )
+        );
+
+        Page<InProgressWorkSummary> result =
+                workService.getInProgressWorks(
+                        1L,
+                        null,
+                        2,
+                        10
+                );
+
+        assertEquals(2, result.getContent().size());
+
+        InProgressWorkSummary first =
+                result.getContent().get(0);
+
+        assertEquals(102L, first.id());
+        assertEquals(
+                "写真あり作品",
+                first.name()
+        );
+        assertEquals(50, first.stitchCount());
+        assertEquals(60, first.rowCount());
+        assertTrue(first.hasPhoto());
+
+        InProgressWorkSummary second =
+                result.getContent().get(1);
+
+        assertEquals(101L, second.id());
+        assertEquals(
+                "写真なし作品",
+                second.name()
+        );
+        assertEquals(25, second.stitchCount());
+        assertEquals(40, second.rowCount());
+        assertFalse(second.hasPhoto());
+
+        ArgumentCaptor<Pageable> pageableCaptor =
+                ArgumentCaptor.forClass(
+                        Pageable.class
+                );
+
+        verify(workRepository)
+                .findByUserAndStatus(
+                        eq(user),
+                        eq(WorkStatus.IN_PROGRESS),
+                        pageableCaptor.capture()
+                );
+
+        Pageable pageable =
+                pageableCaptor.getValue();
+
+        assertEquals(
+                2,
+                pageable.getPageNumber()
+        );
+
+        assertEquals(
+                10,
+                pageable.getPageSize()
+        );
+
+        Sort.Order lastUpdatedOrder =
+                pageable.getSort()
+                        .getOrderFor(
+                                "lastUpdatedAt"
+                        );
+
+        assertNotNull(lastUpdatedOrder);
+        assertTrue(
+                lastUpdatedOrder.isDescending()
+        );
+
+        Sort.Order idOrder =
+                pageable.getSort()
+                        .getOrderFor("id");
+
+        assertNotNull(idOrder);
+        assertTrue(idOrder.isDescending());
+
+        verify(
+                workRepository,
+                never()
+        ).findByUserAndStatusAndCategory(
+                any(),
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    void カテゴリー指定時はカテゴリー付きRepository検索を使用する() {
+
+        User user = new User(
+                "category-service@example.com",
+                "CategoryService123",
+                "{bcrypt}hashed-password",
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        1,
+                        12,
+                        0
+                )
+        );
+
+        when(userRepository.findById(1L))
+                .thenReturn(Optional.of(user));
+
+        Work work = new Work(
+                user,
+                "帽子作品",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.IN_PROGRESS,
+                null,
+                LocalDateTime.of(
+                        2026,
+                        9,
+                        29,
+                        15,
+                        0
+                )
+        );
+
+        ReflectionTestUtils.setField(
+                work,
+                "id",
+                201L
+        );
+
+        when(
+                workRepository
+                        .findByUserAndStatusAndCategory(
+                                eq(user),
+                                eq(
+                                        WorkStatus.IN_PROGRESS
+                                ),
+                                eq(WorkCategory.HAT),
+                                any(Pageable.class)
+                        )
+        ).thenReturn(
+                new PageImpl<>(
+                        List.of(work)
+                )
+        );
+
+        Page<InProgressWorkSummary> result =
+                workService.getInProgressWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        0,
+                        10
+                );
+
+        assertEquals(
+                1,
+                result.getContent().size()
+        );
+
+        assertEquals(
+                201L,
+                result.getContent()
+                        .get(0)
+                        .id()
+        );
+
+        verify(workRepository)
+                .findByUserAndStatusAndCategory(
+                        eq(user),
+                        eq(WorkStatus.IN_PROGRESS),
+                        eq(WorkCategory.HAT),
+                        any(Pageable.class)
+                );
+
+        verify(
+                workRepository,
+                never()
+        ).findByUserAndStatus(
+                any(),
+                any(),
+                any()
+        );
+    }
+
+    @Test
+    void 制作中一覧取得時に認証ユーザーが存在しなければ例外となる() {
+
+        when(userRepository.findById(999L))
+                .thenReturn(Optional.empty());
+
+        IllegalStateException exception =
+                assertThrows(
+                        IllegalStateException.class,
+                        () -> workService
+                                .getInProgressWorks(
+                                        999L,
+                                        null,
+                                        0,
+                                        10
+                                )
+                );
+
+        assertEquals(
+                "認証ユーザーが見つかりません。",
+                exception.getMessage()
+        );
+
+        verifyNoInteractions(workRepository);
     }
 }

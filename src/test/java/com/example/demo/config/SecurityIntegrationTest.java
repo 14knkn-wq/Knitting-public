@@ -352,4 +352,82 @@ class SecurityIntegrationTest {
                         )
                 );
     }
+    
+    @Test
+    void inProgressWorksPageRedirectsToLoginWhenUnauthenticated()
+            throws Exception {
+
+        mockMvc.perform(get("/works/in-progress"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(
+                        redirectedUrl("/login?required")
+                );
+    }
+
+    @Test
+    void inProgressWorksPageIsAvailableWhenAuthenticated()
+            throws Exception {
+
+        User user = new User(
+                "in-progress-security@example.com",
+                "inprogresssecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        userRepository.saveAndFlush(user);
+
+        try {
+            KnittingUserPrincipal principal =
+                    new KnittingUserPrincipal(
+                            user.getId(),
+                            user.getUsername(),
+                            user.getPasswordHash()
+                    );
+
+            var authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities()
+                    );
+
+            mockMvc.perform(
+                    get("/works/in-progress")
+                            .with(
+                                    authentication(
+                                            authenticationToken
+                                    )
+                            )
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            view().name(
+                                    "works/in-progress"
+                            )
+                    )
+                    .andExpect(
+                            model().attributeExists(
+                                    "worksPage"
+                            )
+                    )
+                    .andExpect(
+                            model().attributeExists(
+                                    "categories"
+                            )
+                    )
+                    .andExpect(
+                            content().string(
+                                    org.hamcrest.Matchers
+                                            .containsString(
+                                                    "制作中の作品はありません。"
+                                            )
+                            )
+                    );
+
+        } finally {
+            userRepository.delete(user);
+            userRepository.flush();
+        }
+    }
 }

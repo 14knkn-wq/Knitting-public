@@ -4,10 +4,16 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Work;
 import com.example.demo.entity.WorkCategory;
@@ -129,6 +135,58 @@ public class WorkService {
         return workId;
     }
     
+    private InProgressWorkSummary toInProgressWorkSummary(
+            Work work) {
+
+        return new InProgressWorkSummary(
+                work.getId(),
+                work.getName(),
+                work.getStitchCount(),
+                work.getRowCount(),
+                work.getPhotoReference() != null
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<InProgressWorkSummary> getInProgressWorks(
+            Long userId,
+            WorkCategory category,
+            int pageIndex,
+            int pageSize) {
+
+        User user = getAuthenticatedUser(userId);
+
+        Pageable pageable = PageRequest.of(
+                pageIndex,
+                pageSize,
+                Sort.by(
+                        Sort.Order.desc("lastUpdatedAt"),
+                        Sort.Order.desc("id")
+                )
+        );
+
+        Page<Work> works;
+
+        if (category == null) {
+            works = workRepository.findByUserAndStatus(
+                    user,
+                    WorkStatus.IN_PROGRESS,
+                    pageable
+            );
+        } else {
+            works = workRepository.findByUserAndStatusAndCategory(
+                    user,
+                    WorkStatus.IN_PROGRESS,
+                    category,
+                    pageable
+            );
+        }
+
+        return works.map(
+                this::toInProgressWorkSummary
+        );
+    }
+
     public Long createWork(
             Long userId,
             String name,

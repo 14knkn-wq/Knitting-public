@@ -3,14 +3,20 @@ package com.example.demo.controller;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.util.List;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.ui.ExtendedModelMap;
 import org.springframework.ui.Model;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 
+import com.example.demo.dto.InProgressWorkSummary;
 import com.example.demo.entity.WorkCategory;
 import com.example.demo.entity.WorkStatus;
 import com.example.demo.form.WorkCreateForm;
@@ -599,5 +605,328 @@ class WorkControllerTest {
         verifyNoInteractions(
                 workService
         );
+    }
+
+    @Test
+    void 制作中一覧の1ページ目を表示できる() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        InProgressWorkSummary work =
+                new InProgressWorkSummary(
+                        101L,
+                        "テスト作品",
+                        25,
+                        40,
+                        false
+                );
+
+        var worksPage =
+                new PageImpl<>(
+                        List.of(work),
+                        PageRequest.of(0, 10),
+                        1
+                );
+
+        when(
+                workService.getInProgressWorks(
+                        1L,
+                        null,
+                        0,
+                        10
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showInProgressWorks(
+                        null,
+                        1,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "works/in-progress",
+                viewName
+        );
+
+        assertEquals(
+                200,
+                response.getStatus()
+        );
+
+        assertSame(
+                worksPage,
+                model.getAttribute("worksPage")
+        );
+
+        assertArrayEquals(
+                WorkCategory.values(),
+                (WorkCategory[]) model.getAttribute(
+                        "categories"
+                )
+        );
+
+        assertNull(
+                model.getAttribute(
+                        "selectedCategory"
+                )
+        );
+
+        verify(workService)
+                .getInProgressWorks(
+                        1L,
+                        null,
+                        0,
+                        10
+                );
+    }
+
+    @Test
+    void 制作中一覧ではカテゴリーとページ番号をServiceへ渡せる() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        InProgressWorkSummary work =
+                new InProgressWorkSummary(
+                        201L,
+                        "帽子作品",
+                        10,
+                        20,
+                        true
+                );
+
+        var worksPage =
+                new PageImpl<>(
+                        List.of(work),
+                        PageRequest.of(1, 10),
+                        15
+                );
+
+        when(
+                workService.getInProgressWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        1,
+                        10
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showInProgressWorks(
+                        WorkCategory.HAT,
+                        2,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "works/in-progress",
+                viewName
+        );
+
+        assertEquals(
+                200,
+                response.getStatus()
+        );
+
+        assertSame(
+                worksPage,
+                model.getAttribute("worksPage")
+        );
+
+        assertEquals(
+                WorkCategory.HAT,
+                model.getAttribute(
+                        "selectedCategory"
+                )
+        );
+
+        verify(workService)
+                .getInProgressWorks(
+                        1L,
+                        WorkCategory.HAT,
+                        1,
+                        10
+                );
+    }
+
+    @Test
+    void 制作中一覧でpageが1未満なら400としてServiceを呼ばない() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showInProgressWorks(
+                        null,
+                        0,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "error/400",
+                viewName
+        );
+
+        assertEquals(
+                400,
+                response.getStatus()
+        );
+
+        verifyNoInteractions(workService);
+    }
+
+    @Test
+    void 制作中一覧で総ページ数を超えるpageなら400とする() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        var worksPage =
+                new PageImpl<InProgressWorkSummary>(
+                        List.of(),
+                        PageRequest.of(1, 10),
+                        10
+                );
+
+        when(
+                workService.getInProgressWorks(
+                        1L,
+                        null,
+                        1,
+                        10
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showInProgressWorks(
+                        null,
+                        2,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "error/400",
+                viewName
+        );
+
+        assertEquals(
+                400,
+                response.getStatus()
+        );
+
+        verify(workService)
+                .getInProgressWorks(
+                        1L,
+                        null,
+                        1,
+                        10
+                );
+    }
+
+    @Test
+    void 制作中作品が0件でも1ページ目なら正常表示する() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        var worksPage =
+                new PageImpl<InProgressWorkSummary>(
+                        List.of(),
+                        PageRequest.of(0, 10),
+                        0
+                );
+
+        when(
+                workService.getInProgressWorks(
+                        1L,
+                        null,
+                        0,
+                        10
+                )
+        ).thenReturn(worksPage);
+
+        Model model =
+                new ExtendedModelMap();
+
+        MockHttpServletResponse response =
+                new MockHttpServletResponse();
+
+        String viewName =
+                workController.showInProgressWorks(
+                        null,
+                        1,
+                        principal,
+                        model,
+                        response
+                );
+
+        assertEquals(
+                "works/in-progress",
+                viewName
+        );
+
+        assertEquals(
+                200,
+                response.getStatus()
+        );
+
+        assertSame(
+                worksPage,
+                model.getAttribute("worksPage")
+        );
+
+        verify(workService)
+                .getInProgressWorks(
+                        1L,
+                        null,
+                        0,
+                        10
+                );
     }
 }
