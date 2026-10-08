@@ -158,4 +158,56 @@ public class Work {
     public LocalDateTime getLastUpdatedAt() {
         return lastUpdatedAt;
     }
+
+    public void updateBasicInfo(
+            String name,
+            String photoReference,
+            WorkCategory category,
+            LocalDateTime lastUpdatedAt
+    ) {
+        this.name = name;
+        this.photoReference = photoReference;
+        this.category = category;
+        this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void updateStitchCount(
+            int stitchCount,
+            LocalDateTime lastUpdatedAt
+    ) {
+        this.stitchCount = stitchCount;
+        this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void updateRowCount(
+            int rowCount,
+            LocalDateTime lastUpdatedAt
+    ) {
+        this.rowCount = rowCount;
+        this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void updateMemo(
+            String memo,
+            LocalDateTime lastUpdatedAt
+    ) {
+        this.memo = memo;
+        this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void updateStatus(
+            WorkStatus status,
+            LocalDate completionDate,
+            LocalDateTime lastUpdatedAt
+    ) {
+        this.status = status;
+        this.completionDate = completionDate;
+        this.lastUpdatedAt = lastUpdatedAt;
+    }
+
+    public void updateCompletionDate(
+            LocalDate completionDate
+    ) {
+        this.completionDate = completionDate;
+    }
 }

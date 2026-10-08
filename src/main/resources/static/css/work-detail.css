@@ -1,0 +1,235 @@
+#work-detail {
+    width: min(100% - 2rem, 960px);
+    margin-inline: auto;
+    padding-block: 1.5rem 3rem;
+}
+
+#work-detail section {
+    margin-top: 2rem;
+}
+
+#work-detail h1,
+#work-detail h2,
+#work-detail h3 {
+    margin-top: 0;
+}
+
+#work-detail p[role="status"] {
+    margin-bottom: 1.5rem;
+}
+
+#basic-info-form > div:first-of-type {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+#basic-info-form section {
+    margin-top: 1.5rem;
+}
+
+#work-photo-preview {
+    display: block;
+    width: min(100%, 640px);
+    max-height: 480px;
+    margin-block: 1rem;
+    object-fit: contain;
+    object-position: center;
+}
+
+#basic-info-view > div,
+#basic-info-edit > div {
+    margin-top: 1rem;
+}
+
+#basic-info-view p {
+    margin-block: 0.25rem 0;
+}
+
+#basic-info-edit label:not(:has(input[type="checkbox"])) {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+#basic-info-edit input[type="text"],
+#basic-info-edit select {
+    box-sizing: border-box;
+    width: min(100%, 32rem);
+    min-height: 2.5rem;
+}
+
+#basic-info-edit input[type="file"] {
+    display: block;
+    max-width: 100%;
+}
+
+#basic-info-save-button,
+#basic-info-cancel-button {
+    min-height: 2.5rem;
+    padding-inline: 1rem;
+}
+
+#work-counters {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+#work-counters > div {
+    min-width: 0;
+}
+
+#work-counters > div > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+#stitch-count,
+#row-count {
+    box-sizing: border-box;
+    width: 7rem;
+    min-height: 3rem;
+    text-align: center;
+    font-size: 1.25rem;
+}
+
+#stitch-decrement-button,
+#stitch-increment-button,
+#row-decrement-button,
+#row-increment-button {
+    min-width: 3rem;
+    min-height: 3rem;
+    font-size: 1.25rem;
+}
+
+#stitch-save-status,
+#row-save-status,
+#memo-save-status,
+#work-state-save-status {
+    min-height: 1.5em;
+    margin-block: 0.5rem 0;
+}
+
+#stitch-error,
+#row-error,
+#memo-error,
+#work-state-error {
+    margin-block: 0.5rem 0;
+}
+
+#work-memo {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 10rem;
+    resize: vertical;
+}
+
+#work-state-heading + fieldset {
+    margin-bottom: 1rem;
+}
+
+#work-state-heading + fieldset label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-right: 1rem;
+}
+
+#completion-date-container {
+    margin-top: 1rem;
+}
+
+#completion-date-container label {
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+#completion-date {
+    min-height: 2.5rem;
+}
+
+#delete-work-heading {
+    margin-bottom: 0.5rem;
+}
+
+#delete-work-button {
+    min-height: 2.5rem;
+}
+
+dialog {
+    width: min(calc(100% - 2rem), 32rem);
+    box-sizing: border-box;
+    padding: 1.5rem;
+}
+
+dialog::backdrop {
+    background: rgb(0 0 0 / 0.35);
+}
+
+dialog form {
+    margin-top: 1.5rem;
+}
+
+dialog button {
+    min-height: 2.5rem;
+    padding-inline: 1rem;
+}
+
+#delete-work-unsaved-warning {
+    font-weight: 600;
+}
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 767px) {
+
+    #work-detail {
+        width: min(100% - 1.5rem, 960px);
+        padding-top: 1rem;
+    }
+
+    #basic-info-form > div:first-of-type {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    #work-counters {
+        grid-template-columns: 1fr;
+    }
+
+    #work-photo-preview {
+        width: 100%;
+        max-height: none;
+    }
+
+    #basic-info-edit input[type="text"],
+    #basic-info-edit select {
+        width: 100%;
+    }
+
+    #work-state-heading + fieldset label {
+        display: flex;
+        margin-block: 0.5rem;
+    }
+
+    dialog {
+        padding: 1rem;
+    }
+}

@@ -3,7 +3,11 @@ package com.example.demo.service;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,15 +19,25 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.demo.dto.CompletedWorkSummary;
 import com.example.demo.dto.InProgressWorkSummary;
+import com.example.demo.dto.WorkDetailResult;
+import com.example.demo.dto.WorkImageResult;
 import com.example.demo.entity.User;
 import com.example.demo.entity.Work;
 import com.example.demo.entity.WorkCategory;
 import com.example.demo.entity.WorkStatus;
+import com.example.demo.exception.BasicInfoConflictException;
+import com.example.demo.exception.WorkNotFoundException;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.repository.WorkRepository;
+import com.example.demo.service.SubmissionTokenManager.BasicInfoSnapshot;
 
 @Service
 public class WorkService {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(
+                    WorkService.class
+            );
 
     private final UserRepository userRepository;
     private final WorkRepository workRepository;
@@ -68,6 +82,36 @@ public class WorkService {
                         () -> new IllegalStateException(
                                 "認証ユーザーが見つかりません。"
                         )
+                );
+    }
+
+    private Work getOwnedWork(
+            Long userId,
+            Long workId) {
+
+        User user = getAuthenticatedUser(userId);
+
+        return workRepository
+                .findByIdAndUser(
+                        workId,
+                        user
+                )
+                .orElseThrow(
+                        WorkNotFoundException::new
+                );
+    }
+
+    private Work getOwnedWorkForUpdate(
+            Long userId,
+            Long workId) {
+
+        return workRepository
+                .findByIdAndUserId(
+                        workId,
+                        userId
+                )
+                .orElseThrow(
+                        WorkNotFoundException::new
                 );
     }
 
@@ -159,6 +203,81 @@ public class WorkService {
         );
     }
 
+    private WorkDetailResult toWorkDetailResult(
+            Work work,
+            String submissionToken) {
+
+        return new WorkDetailResult(
+                work.getId(),
+                work.getName(),
+                work.getCategory(),
+                work.getStitchCount(),
+                work.getRowCount(),
+                work.getMemo(),
+                work.getStatus(),
+                work.getCompletionDate(),
+                submissionToken,
+                work.getPhotoReference() != null
+        );
+    }
+
+    private void verifyBasicInfoSnapshot(
+            Work work,
+            BasicInfoSnapshot snapshot) {
+
+        if (!Objects.equals(
+                    work.getName(),
+                    snapshot.name())
+                || work.getCategory()
+                    != snapshot.category()
+                || !Objects.equals(
+                    work.getPhotoReference(),
+                    snapshot.photoReference())) {
+
+            throw new BasicInfoConflictException(
+                    work.getId()
+            );
+        }
+    }
+
+    private void cleanupCandidateImage(
+            String photoReference,
+            RuntimeException originalException) {
+
+        if (photoReference == null) {
+            return;
+        }
+
+        try {
+            workImageStorage.deleteImage(
+                    photoReference
+            );
+        } catch (RuntimeException cleanupException) {
+            originalException.addSuppressed(
+                    cleanupException
+            );
+        }
+    }
+
+    private void deleteOldImageBestEffort(
+            String photoReference) {
+
+        if (photoReference == null) {
+            return;
+        }
+
+        try {
+            workImageStorage.deleteImage(
+                    photoReference
+            );
+        } catch (RuntimeException e) {
+            logger.warn(
+                    "Failed to delete old work image after database commit.",
+                    e
+            );
+        }
+    }
+
     @Transactional(readOnly = true)
     public Page<InProgressWorkSummary> getInProgressWorks(
             Long userId,
@@ -238,6 +357,88 @@ public class WorkService {
         );
     }
 
+    @Transactional(readOnly = true)
+    public WorkDetailResult getWorkDetail(
+            Long userId,
+            Long workId) {
+
+        Work work = getOwnedWork(
+                userId,
+                workId
+        );
+
+        String submissionToken =
+                submissionTokenManager
+                        .issueBasicInfoToken(
+                                work.getId(),
+                                work.getName(),
+                                work.getCategory(),
+                                work.getPhotoReference()
+                        );
+
+        return toWorkDetailResult(
+                work,
+                submissionToken
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public WorkDetailResult getWorkDetailForRedisplay(
+            Long userId,
+            Long workId,
+            String existingSubmissionToken) {
+
+        Work work = getOwnedWork(
+                userId,
+                workId
+        );
+
+        return toWorkDetailResult(
+                work,
+                existingSubmissionToken
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public WorkImageResult getWorkImage(
+            Long userId,
+            Long workId) {
+
+        Work work = getOwnedWork(
+                userId,
+                workId
+        );
+
+        String photoReference =
+                work.getPhotoReference();
+
+        if (photoReference == null) {
+            return new WorkImageResult(
+                    workImageStorage.readDefaultImage(),
+                    "image/png"
+            );
+        }
+
+        Resource resource =
+                workImageStorage.readImage(
+                        photoReference
+                );
+
+        if (resource == null) {
+            return new WorkImageResult(
+                    workImageStorage.readDefaultImage(),
+                    "image/png"
+            );
+        }
+
+        return new WorkImageResult(
+                resource,
+                workImageStorage.determineContentType(
+                        photoReference
+                )
+        );
+    }
+
     public Long createWork(
             Long userId,
             String name,
@@ -268,22 +469,19 @@ public class WorkService {
 
         } catch (RuntimeException e) {
 
-            if (candidatePhotoReference != null) {
-                try {
-                    workImageStorage.deleteImage(
-                            candidatePhotoReference
-                    );
-                } catch (RuntimeException cleanupException) {
-                    e.addSuppressed(cleanupException);
-                }
-            }
+            cleanupCandidateImage(
+                    candidatePhotoReference,
+                    e
+            );
 
             try {
                 submissionTokenManager.releaseForRetry(
                         submissionToken
                 );
             } catch (RuntimeException releaseException) {
-                e.addSuppressed(releaseException);
+                e.addSuppressed(
+                        releaseException
+                );
             }
 
             throw e;
@@ -294,5 +492,194 @@ public class WorkService {
         );
 
         return workId;
+    }
+
+    public void updateBasicInfo(
+            Long userId,
+            Long workId,
+            String name,
+            MultipartFile photo,
+            WorkCategory category,
+            boolean deletePhoto,
+            String submissionToken) {
+
+        BasicInfoSnapshot snapshot =
+                submissionTokenManager
+                        .beginBasicInfo(
+                                submissionToken,
+                                workId
+                        );
+
+        String candidatePhotoReference = null;
+
+        try {
+            transactionTemplate.execute(
+                    transactionStatus -> {
+
+                        Work work = getOwnedWork(
+                                userId,
+                                workId
+                        );
+
+                        verifyBasicInfoSnapshot(
+                                work,
+                                snapshot
+                        );
+
+                        return null;
+                    }
+            );
+
+            candidatePhotoReference =
+                    saveCandidateImage(photo);
+
+            String newPhotoReference;
+
+            if (candidatePhotoReference != null) {
+                newPhotoReference =
+                        candidatePhotoReference;
+
+            } else if (deletePhoto) {
+                newPhotoReference = null;
+
+            } else {
+                newPhotoReference =
+                        snapshot.photoReference();
+            }
+
+            final String finalPhotoReference =
+                    newPhotoReference;
+
+            String oldPhotoReference =
+                    transactionTemplate.execute(
+                            transactionStatus -> {
+
+                                Work work =
+                                        getOwnedWorkForUpdate(
+                                                userId,
+                                                workId
+                                        );
+
+                                verifyBasicInfoSnapshot(
+                                        work,
+                                        snapshot
+                                );
+
+                                String oldReference =
+                                        work.getPhotoReference();
+
+                                boolean changed =
+                                        !Objects.equals(
+                                                work.getName(),
+                                                name
+                                        )
+                                        || work.getCategory()
+                                                != category
+                                        || !Objects.equals(
+                                                work.getPhotoReference(),
+                                                finalPhotoReference
+                                        );
+
+                                if (changed) {
+                                    work.updateBasicInfo(
+                                            name,
+                                            finalPhotoReference,
+                                            category,
+                                            LocalDateTime.now(
+                                                    clock
+                                            )
+                                    );
+                                }
+
+                                return oldReference;
+                            }
+                    );
+
+            submissionTokenManager.complete(
+                    submissionToken
+            );
+
+            if (!Objects.equals(
+                    oldPhotoReference,
+                    finalPhotoReference)) {
+
+                deleteOldImageBestEffort(
+                        oldPhotoReference
+                );
+            }
+
+        } catch (BasicInfoConflictException e) {
+
+            cleanupCandidateImage(
+                    candidatePhotoReference,
+                    e
+            );
+
+            submissionTokenManager.invalidate(
+                    submissionToken
+            );
+
+            throw e;
+
+        } catch (WorkNotFoundException e) {
+
+            cleanupCandidateImage(
+                    candidatePhotoReference,
+                    e
+            );
+
+            submissionTokenManager.invalidate(
+                    submissionToken
+            );
+
+            throw e;
+
+        } catch (RuntimeException e) {
+
+            cleanupCandidateImage(
+                    candidatePhotoReference,
+                    e
+            );
+
+            try {
+                submissionTokenManager.releaseForRetry(
+                        submissionToken
+                );
+            } catch (RuntimeException releaseException) {
+                e.addSuppressed(
+                        releaseException
+                );
+            }
+
+            throw e;
+        }
+    }
+
+    public void deleteWork(
+            Long userId,
+            Long workId) {
+
+        String oldPhotoReference =
+                transactionTemplate.execute(
+                        transactionStatus -> {
+
+                            Work work =
+                                    getOwnedWorkForUpdate(
+                                            userId,
+                                            workId
+                                    );
+
+                            String photoReference =
+                                    work.getPhotoReference();
+
+                            workRepository.delete(work);
+
+                            return photoReference;
+                        }
+                );
+
+        deleteOldImageBestEffort(
+                oldPhotoReference
+        );
     }
 }

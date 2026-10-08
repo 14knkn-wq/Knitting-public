@@ -10,7 +10,7 @@
 | 文書種別 | 詳細設計書 |
 | 文書状態 | 詳細設計01〜13 統合確定版 |
 | 作成日 | 2026年9月11日 |
-| 実装状況 | 本書作成時点では機能実装前 |
+| 実装状況 | Step14「S-11 作品詳細・編集」までの機能実装・確認を完了。Phase5は未完了 |
 | 技術前提 | Java 25 / Spring Boot 4.0.8 / Maven / Eclipse / Spring MVC / Thymeleaf / HTML / CSS / 必要最小限のJavaScript / Spring Data JPA / Spring Security / MySQL Community 8.4 LTS / Flyway |
 
 ### 本書の目的

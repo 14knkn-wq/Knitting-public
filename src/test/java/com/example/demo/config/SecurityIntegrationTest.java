@@ -19,7 +19,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.demo.entity.User;
+import com.example.demo.entity.Work;
+import com.example.demo.entity.WorkCategory;
+import com.example.demo.entity.WorkStatus;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.WorkRepository;
 import com.example.demo.security.KnittingUserPrincipal;
 
 @SpringBootTest
@@ -32,6 +36,9 @@ class SecurityIntegrationTest {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WorkRepository workRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -574,6 +581,263 @@ class SecurityIntegrationTest {
 
         } finally {
             userRepository.delete(user);
+            userRepository.flush();
+        }
+    }
+
+    @Test
+    void workAutoSaveEndpointsReturn401WhenUnauthenticated()
+            throws Exception {
+
+        String[] endpoints = {
+                "/works/100/counter",
+                "/works/100/memo",
+                "/works/100/status",
+                "/works/100/completion-date"
+        };
+
+        for (String endpoint : endpoints) {
+
+            mockMvc.perform(
+                    post(endpoint)
+                            .with(csrf())
+            )
+                    .andExpect(
+                            status().isUnauthorized()
+                    )
+                    .andExpect(
+                            content().string("")
+                    );
+        }
+    }
+
+    @Test
+    void workAutoSaveEndpointsReturn403WithoutCsrfWhenAuthenticated()
+            throws Exception {
+
+        String[] endpoints = {
+                "/works/100/counter",
+                "/works/100/memo",
+                "/works/100/status",
+                "/works/100/completion-date"
+        };
+
+        for (String endpoint : endpoints) {
+
+            mockMvc.perform(
+                    post(endpoint)
+                            .with(
+                                    user("testuser")
+                            )
+            )
+                    .andExpect(
+                            status().isForbidden()
+                    );
+        }
+    }
+
+    @Test
+    void workAutoSaveReturns403WhenUnauthenticatedWithInvalidCsrf()
+            throws Exception {
+
+        mockMvc.perform(
+                post("/works/100/counter")
+                        .with(csrf().useInvalidToken())
+        )
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void ownerCanUpdateOwnWorkCounter() throws Exception {
+
+        User owner = new User(
+                "owner-security@example.com",
+                "ownersecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        userRepository.saveAndFlush(owner);
+
+        Work work = new Work(
+                owner,
+                "owner work",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.IN_PROGRESS,
+                null,
+                LocalDateTime.now()
+        );
+
+        workRepository.saveAndFlush(work);
+
+        try {
+            KnittingUserPrincipal principal =
+                    new KnittingUserPrincipal(
+                            owner.getId(),
+                            owner.getUsername(),
+                            owner.getPasswordHash()
+                    );
+
+            var authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities()
+                    );
+
+            mockMvc.perform(
+                    post(
+                            "/works/{id}/counter",
+                            work.getId()
+                    )
+                            .with(csrf())
+                            .with(
+                                    authentication(
+                                            authenticationToken
+                                    )
+                            )
+                            .param(
+                                    "counterType",
+                                    "STITCH"
+                            )
+                            .param("value", "1")
+                            .param(
+                                    "expectedValue",
+                                    "0"
+                            )
+            )
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            jsonPath("$.counterType")
+                                    .value("STITCH")
+                    )
+                    .andExpect(
+                            jsonPath("$.value")
+                                    .value(1)
+                    );
+
+            Work updated =
+                    workRepository.findById(
+                            work.getId()
+                    ).orElseThrow();
+
+            assertEquals(
+                    1,
+                    updated.getStitchCount()
+            );
+
+        } finally {
+            workRepository.deleteById(
+                    work.getId()
+            );
+            workRepository.flush();
+
+            userRepository.deleteById(
+                    owner.getId()
+            );
+            userRepository.flush();
+        }
+    }
+
+    @Test
+    void otherUserCannotUpdateOwnersWorkCounter()
+            throws Exception {
+
+        User owner = new User(
+                "other-owner-security@example.com",
+                "otherownersecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        User otherUser = new User(
+                "other-user-security@example.com",
+                "otherusersecurity",
+                passwordEncoder.encode("Testpass1!"),
+                LocalDateTime.now()
+        );
+
+        userRepository.saveAndFlush(owner);
+        userRepository.saveAndFlush(otherUser);
+
+        Work work = new Work(
+                owner,
+                "owner work",
+                null,
+                WorkCategory.HAT,
+                WorkStatus.IN_PROGRESS,
+                null,
+                LocalDateTime.now()
+        );
+
+        workRepository.saveAndFlush(work);
+
+        try {
+            KnittingUserPrincipal principal =
+                    new KnittingUserPrincipal(
+                            otherUser.getId(),
+                            otherUser.getUsername(),
+                            otherUser.getPasswordHash()
+                    );
+
+            var authenticationToken =
+                    new UsernamePasswordAuthenticationToken(
+                            principal,
+                            null,
+                            principal.getAuthorities()
+                    );
+
+            mockMvc.perform(
+                    post(
+                            "/works/{id}/counter",
+                            work.getId()
+                    )
+                            .with(csrf())
+                            .with(
+                                    authentication(
+                                            authenticationToken
+                                    )
+                            )
+                            .param(
+                                    "counterType",
+                                    "STITCH"
+                            )
+                            .param("value", "1")
+                            .param(
+                                    "expectedValue",
+                                    "0"
+                            )
+            )
+                    .andExpect(
+                            status().isNotFound()
+                    )
+                    .andExpect(
+                            content().string("")
+                    );
+
+            Work unchanged =
+                    workRepository.findById(
+                            work.getId()
+                    ).orElseThrow();
+
+            assertEquals(
+                    0,
+                    unchanged.getStitchCount()
+            );
+
+        } finally {
+            workRepository.deleteById(
+                    work.getId()
+            );
+            workRepository.flush();
+
+            userRepository.deleteById(
+                    otherUser.getId()
+            );
+            userRepository.deleteById(
+                    owner.getId()
+            );
             userRepository.flush();
         }
     }

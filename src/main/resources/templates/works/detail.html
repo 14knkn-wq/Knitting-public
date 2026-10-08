@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="_csrf"
+        th:content="${_csrf.token}">
+
+    <meta
+        name="_csrf_header"
+        th:content="${_csrf.headerName}">
+
+    <title th:text="${work.name + ' | Knitting'}">
+        作品詳細 | Knitting
+    </title>
+
+    <link
+        rel="stylesheet"
+        th:href="@{/css/work-detail.css}">
+</head>
+
+<body
+    th:data-work-id="${work.id}"
+    data-basic-info-dirty="false"
+    data-allow-page-leave="false">
+
+	<!-- 遷移元が完成一覧、またはfromなしで現在完成 -->
+	<div
+	    th:if="${from == 'completed'
+	            or (from == null
+	                and work.status.name() == 'COMPLETED')}">
+
+	    <div
+	        th:replace="~{fragments/header
+	            :: authenticatedHeader('completed')}">
+	    </div>
+
+	</div>
+
+	<!-- それ以外は制作中一覧 -->
+	<div
+	    th:unless="${from == 'completed'
+	                or (from == null
+	                    and work.status.name() == 'COMPLETED')}">
+
+	    <div
+	        th:replace="~{fragments/header
+	            :: authenticatedHeader('in-progress')}">
+	    </div>
+
+	</div>
+
+    <main id="work-detail">
+
+        <p
+            th:if="${basicInfoConflictMessage}"
+            th:text="${basicInfoConflictMessage}"
+            role="status">
+            別の画面で作品情報が更新されました。
+        </p>
+
+        <form
+            id="basic-info-form"
+            th:action="@{/works/{id}/basic-info(
+                id=${work.id},
+                from=${from}
+            )}"
+            th:object="${workBasicInfoForm}"
+            th:data-original-name="${work.name}"
+            th:data-original-category="${work.category.name()}"
+            th:data-has-photo="${work.hasPhoto}"
+            th:data-has-errors="${#fields.hasAnyErrors()}"
+            method="post"
+            enctype="multipart/form-data">
+
+            <input
+                type="hidden"
+                th:field="*{submissionToken}">
+
+            <div>
+
+                <button
+                    type="button"
+                    id="basic-info-edit-button"
+                    th:attr="hidden=
+                        ${#fields.hasAnyErrors()}
+                        ? 'hidden'
+                        : null">
+                    編集
+                </button>
+
+                <a
+                    id="back-to-in-progress-link"
+                    th:if="${from == 'in-progress'
+                            or (from == null
+                                and work.status.name()
+                                    == 'IN_PROGRESS')}"
+                    th:href="@{/works/in-progress}">
+                    ← 制作中一覧へ戻る
+                </a>
+
+                <a
+                    id="back-to-completed-link"
+                    th:if="${from == 'completed'
+                            or (from == null
+                                and work.status.name()
+                                    == 'COMPLETED')}"
+                    th:href="@{/works/completed}">
+                    ← 完成一覧へ戻る
+                </a>
+
+            </div>
+
+            <section aria-labelledby="basic-info-heading">
+
+                <h1 id="basic-info-heading">
+                    作品詳細
+                </h1>
+
+                <div>
+
+                    <img
+                        id="work-photo-preview"
+                        th:src="${
+                            work.hasPhoto
+                            and !workBasicInfoForm.deletePhoto
+                        }
+                        ? @{/works/{id}/image(id=${work.id})}
+                        : @{/images/default-work.png}"
+                        th:alt="${work.name + 'の作品写真'}">
+
+                </div>
+
+                <!-- 閲覧モード -->
+                <div
+                    id="basic-info-view"
+                    th:attr="hidden=
+                        ${#fields.hasAnyErrors()}
+                        ? 'hidden'
+                        : null">
+
+                    <div>
+                        <span>作品名</span>
+
+                        <p
+                            id="work-name-display"
+                            th:text="${work.name}">
+                            作品名
+                        </p>
+                    </div>
+
+                    <div>
+                        <span>カテゴリー</span>
+
+                        <p
+                            id="work-category-display"
+                            th:text="${work.category.displayName}">
+                            カテゴリー
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- 編集モード -->
+                <div
+                    id="basic-info-edit"
+                    th:attr="hidden=
+                        ${#fields.hasAnyErrors()}
+                        ? null
+                        : 'hidden'">
+
+                    <div>
+
+                        <label for="photo">
+                            写真を変更
+                        </label>
+
+                        <input
+                            type="file"
+                            id="photo"
+                            th:field="*{photo}"
+                            accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+                        <p>
+                            JPEGまたはPNG・10MB以下
+                        </p>
+
+                        <p
+                            th:if="${#fields.hasErrors('photo')}"
+                            th:errors="*{photo}">
+                        </p>
+
+                        <label
+                            th:if="${work.hasPhoto}">
+
+                            <input
+                                type="checkbox"
+                                id="delete-photo"
+                                th:field="*{deletePhoto}">
+
+                            写真を削除する
+
+                        </label>
+
+                    </div>
+
+                    <div>
+
+                        <label for="name">
+                            作品名
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            required
+                            th:field="*{name}">
+
+                        <p
+                            th:if="${#fields.hasErrors('name')}"
+                            th:errors="*{name}">
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <label for="category">
+                            カテゴリー
+                        </label>
+
+                        <select
+                            id="category"
+                            required
+                            th:field="*{category}">
+
+                            <option value="">
+                                選択してください
+                            </option>
+
+                            <option
+                                th:each="category : ${categories}"
+                                th:value="${category}"
+                                th:text="${category.displayName}">
+                                カテゴリー
+                            </option>
+
+                        </select>
+
+                        <p
+                            th:if="${#fields.hasErrors('category')}"
+                            th:errors="*{category}">
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <button
+                            type="submit"
+                            id="basic-info-save-button">
+                            保存
+                        </button>
+
+                        <button
+                            type="button"
+                            id="basic-info-cancel-button">
+                            キャンセル
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+        </form>
+
+        <section aria-labelledby="counter-heading">
+
+            <h2 id="counter-heading">
+                作品カウンター
+            </h2>
+
+            <div id="work-counters">
+
+                <div>
+
+                    <h3>目数</h3>
+
+                    <div>
+
+                        <button
+                            type="button"
+                            id="stitch-decrement-button"
+                            th:disabled="${work.stitchCount == 0}">
+                            －
+                        </button>
+
+                        <input
+                            type="text"
+                            id="stitch-count"
+                            inputmode="numeric"
+                            aria-label="目数"
+                            th:value="${work.stitchCount}">
+
+                        <button
+                            type="button"
+                            id="stitch-increment-button"
+                            th:disabled="${work.stitchCount == 9999}">
+                            ＋
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="stitch-error"
+                        role="alert"
+                        hidden>
+                    </p>
+
+                    <p
+                        id="stitch-save-status"
+                        aria-live="polite">
+                    </p>
+
+                </div>
+
+                <div>
+
+                    <h3>段数</h3>
+
+                    <div>
+
+                        <button
+                            type="button"
+                            id="row-decrement-button"
+                            th:disabled="${work.rowCount == 0}">
+                            －
+                        </button>
+
+                        <input
+                            type="text"
+                            id="row-count"
+                            inputmode="numeric"
+                            aria-label="段数"
+                            th:value="${work.rowCount}">
+
+                        <button
+                            type="button"
+                            id="row-increment-button"
+                            th:disabled="${work.rowCount == 9999}">
+                            ＋
+                        </button>
+
+                    </div>
+
+                    <p
+                        id="row-error"
+                        role="alert"
+                        hidden>
+                    </p>
+
+                    <p
+                        id="row-save-status"
+                        aria-live="polite">
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <section aria-labelledby="memo-heading">
+
+            <h2 id="memo-heading">
+                制作メモ
+            </h2>
+
+            <label
+                for="work-memo"
+                class="visually-hidden">
+                制作メモ
+            </label>
+
+            <textarea
+                id="work-memo"
+                rows="8"
+                th:text="${work.memo}">
+            </textarea>
+
+            <p>
+                <span
+                    id="memo-character-count"
+                    th:text="${work.memo.codePointCount(
+                        0,
+                        work.memo.length()
+                    )}">
+                    0
+                </span>
+                / 1000文字
+            </p>
+
+            <p
+                id="memo-error"
+                role="alert"
+                hidden>
+            </p>
+
+            <p
+                id="memo-save-status"
+                aria-live="polite">
+            </p>
+
+        </section>
+
+        <section aria-labelledby="work-state-heading">
+
+            <h2 id="work-state-heading">
+                作品の状態
+            </h2>
+
+            <fieldset>
+
+                <legend>
+                    制作ステータス
+                </legend>
+
+                <label>
+
+                    <input
+                        type="radio"
+                        id="work-status-in-progress"
+                        name="workStatus"
+                        value="IN_PROGRESS"
+                        th:checked="${work.status.name()
+                            == 'IN_PROGRESS'}">
+
+                    制作中
+
+                </label>
+
+                <label>
+
+                    <input
+                        type="radio"
+                        id="work-status-completed"
+                        name="workStatus"
+                        value="COMPLETED"
+                        th:checked="${work.status.name()
+                            == 'COMPLETED'}">
+
+                    完成
+
+                </label>
+
+            </fieldset>
+
+            <div
+                id="completion-date-container"
+                th:attr="hidden=
+                    ${work.status.name() == 'COMPLETED'}
+                    ? null
+                    : 'hidden'">
+
+                <label for="completion-date">
+                    完成日
+                </label>
+
+                <input
+                    type="date"
+                    id="completion-date"
+                    th:value="${work.completionDate}">
+
+            </div>
+
+            <p
+                id="work-state-error"
+                role="alert"
+                hidden>
+            </p>
+
+            <p
+                id="work-state-save-status"
+                aria-live="polite">
+            </p>
+
+        </section>
+
+        <section aria-labelledby="delete-work-heading">
+
+            <h2 id="delete-work-heading">
+                作品を削除
+            </h2>
+
+            <p>
+                この作品と関連する情報を削除します。
+            </p>
+
+            <button
+                type="button"
+                id="delete-work-button">
+                作品を削除
+            </button>
+
+        </section>
+
+    </main>
+
+    <!-- 未保存の基本情報がある状態での画面移動 -->
+    <dialog id="unsaved-leave-dialog">
+
+        <p>
+            変更内容が保存されていません。画面を移動しますか？
+        </p>
+
+        <button
+            type="button"
+            id="unsaved-leave-cancel-button">
+            キャンセル
+        </button>
+
+        <button
+            type="button"
+            id="unsaved-leave-confirm-button">
+            移動する
+        </button>
+
+    </dialog>
+
+    <!-- 作品削除確認 -->
+    <dialog id="delete-work-dialog">
+
+        <p>
+            この作品を削除しますか？登録した写真、目数・段数、
+            制作メモなどの関連情報も削除され、元に戻せません。
+        </p>
+
+        <p
+            id="delete-work-unsaved-warning"
+            hidden>
+            保存されていない作品名・写真・カテゴリーの変更内容も失われます。
+        </p>
+
+        <form
+            id="delete-work-form"
+            th:action="@{/works/{id}/delete(id=${work.id})}"
+            method="post">
+
+            <button
+                type="button"
+                id="delete-work-cancel-button">
+                キャンセル
+            </button>
+
+            <button
+                type="submit"
+                id="delete-work-confirm-button">
+                削除する
+            </button>
+
+        </form>
+
+    </dialog>
+
+    <footer
+        th:replace="~{fragments/footer :: footer}">
+    </footer>
+
+    <script
+        th:src="@{/js/work-detail.js}"
+        defer>
+    </script>
+
+</body>
+
+</html>

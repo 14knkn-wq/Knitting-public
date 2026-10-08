@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.time.LocalDate;
@@ -8,8 +9,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.ui.ExtendedModelMap;
@@ -19,8 +24,13 @@ import org.springframework.validation.BindingResult;
 
 import com.example.demo.dto.CompletedWorkSummary;
 import com.example.demo.dto.InProgressWorkSummary;
+import com.example.demo.dto.WorkDetailResult;
+import com.example.demo.dto.WorkImageResult;
 import com.example.demo.entity.WorkCategory;
 import com.example.demo.entity.WorkStatus;
+import com.example.demo.exception.ImageValidationException;
+import com.example.demo.exception.InvalidSubmissionTokenException;
+import com.example.demo.form.WorkBasicInfoForm;
 import com.example.demo.form.WorkCreateForm;
 import com.example.demo.security.KnittingUserPrincipal;
 import com.example.demo.service.SubmissionTokenManager;
@@ -1188,6 +1198,652 @@ class WorkControllerTest {
                         1L,
                         null,
                         1
+                );
+    }
+
+    @Test
+    void 作品詳細を表示すると基本情報Formを現在値で初期化する() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkDetailResult work =
+                new WorkDetailResult(
+                        100L,
+                        "テスト作品",
+                        WorkCategory.HAT,
+                        10,
+                        20,
+                        "制作メモ",
+                        WorkStatus.IN_PROGRESS,
+                        null,
+                        "basic-info-token",
+                        true
+                );
+
+        when(
+                workService.getWorkDetail(
+                        1L,
+                        100L
+                )
+        ).thenReturn(work);
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.showWorkDetail(
+                        100L,
+                        "in-progress",
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "works/detail",
+                viewName
+        );
+
+        assertSame(
+                work,
+                model.getAttribute("work")
+        );
+
+        Object formObject =
+                model.getAttribute(
+                        "workBasicInfoForm"
+                );
+
+        assertInstanceOf(
+                WorkBasicInfoForm.class,
+                formObject
+        );
+
+        WorkBasicInfoForm form =
+                (WorkBasicInfoForm) formObject;
+
+        assertEquals(
+                "テスト作品",
+                form.getName()
+        );
+
+        assertEquals(
+                WorkCategory.HAT,
+                form.getCategory()
+        );
+
+        assertFalse(
+                Boolean.TRUE.equals(
+                        form.getDeletePhoto()
+                )
+        );
+
+        assertEquals(
+                "basic-info-token",
+                form.getSubmissionToken()
+        );
+
+        assertEquals(
+                "in-progress",
+                model.getAttribute("from")
+        );
+
+        assertArrayEquals(
+                WorkCategory.values(),
+                (WorkCategory[]) model.getAttribute(
+                        "categories"
+                )
+        );
+
+        assertArrayEquals(
+                WorkStatus.values(),
+                (WorkStatus[]) model.getAttribute(
+                        "workStatuses"
+                )
+        );
+
+        verify(workService)
+                .getWorkDetail(
+                        1L,
+                        100L
+                );
+    }
+
+    @Test
+    void 作品詳細の不正なfromは無視する() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkDetailResult work =
+                new WorkDetailResult(
+                        100L,
+                        "テスト作品",
+                        WorkCategory.HAT,
+                        0,
+                        0,
+                        "",
+                        WorkStatus.IN_PROGRESS,
+                        null,
+                        "basic-info-token",
+                        false
+                );
+
+        when(
+                workService.getWorkDetail(
+                        1L,
+                        100L
+                )
+        ).thenReturn(work);
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.showWorkDetail(
+                        100L,
+                        "invalid",
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "works/detail",
+                viewName
+        );
+
+        assertNull(
+                model.getAttribute("from")
+        );
+    }
+
+    @Test
+    void 基本情報を正常保存するとfromを維持して詳細へredirectする() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkBasicInfoForm form =
+                new WorkBasicInfoForm();
+
+        form.setName("変更後作品");
+        form.setCategory(
+                WorkCategory.HAT
+        );
+        form.setDeletePhoto(false);
+        form.setSubmissionToken(
+                "basic-info-token"
+        );
+
+        BindingResult bindingResult =
+                new BeanPropertyBindingResult(
+                        form,
+                        "workBasicInfoForm"
+                );
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.updateBasicInfo(
+                        100L,
+                        "in-progress",
+                        form,
+                        bindingResult,
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "redirect:/works/100?from=in-progress",
+                viewName
+        );
+
+        verify(workService)
+                .updateBasicInfo(
+                        1L,
+                        100L,
+                        "変更後作品",
+                        null,
+                        WorkCategory.HAT,
+                        false,
+                        "basic-info-token"
+                );
+    }
+
+    @Test
+    void 基本情報Validationエラーでは保存せず同じtokenで詳細を再表示する() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkBasicInfoForm form =
+                new WorkBasicInfoForm();
+
+        form.setName("");
+        form.setCategory(
+                WorkCategory.HAT
+        );
+        form.setDeletePhoto(false);
+        form.setSubmissionToken(
+                "basic-info-token"
+        );
+
+        MockMultipartFile photo =
+                new MockMultipartFile(
+                        "photo",
+                        "test.jpg",
+                        "image/jpeg",
+                        new byte[] {1, 2, 3}
+                );
+
+        form.setPhoto(photo);
+
+        BindingResult bindingResult =
+                new BeanPropertyBindingResult(
+                        form,
+                        "workBasicInfoForm"
+                );
+
+        bindingResult.rejectValue(
+                "name",
+                "NotBlank",
+                "作品名を入力してください。"
+        );
+
+        WorkDetailResult work =
+                new WorkDetailResult(
+                        100L,
+                        "DB上の作品名",
+                        WorkCategory.HAT,
+                        10,
+                        20,
+                        "",
+                        WorkStatus.IN_PROGRESS,
+                        null,
+                        "basic-info-token",
+                        true
+                );
+
+        when(
+                workService
+                        .getWorkDetailForRedisplay(
+                                1L,
+                                100L,
+                                "basic-info-token"
+                        )
+        ).thenReturn(work);
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.updateBasicInfo(
+                        100L,
+                        "in-progress",
+                        form,
+                        bindingResult,
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "works/detail",
+                viewName
+        );
+
+        assertNull(
+                form.getPhoto()
+        );
+
+        assertEquals(
+                "basic-info-token",
+                form.getSubmissionToken()
+        );
+
+        assertSame(
+                work,
+                model.getAttribute("work")
+        );
+
+        assertEquals(
+                "in-progress",
+                model.getAttribute("from")
+        );
+
+        verify(workService)
+                .getWorkDetailForRedisplay(
+                        1L,
+                        100L,
+                        "basic-info-token"
+                );
+
+        verifyNoMoreInteractions(
+                workService
+        );
+    }
+
+    @Test
+    void 基本情報の画像Validationエラーはphotoエラーとして再表示する() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkBasicInfoForm form =
+                new WorkBasicInfoForm();
+
+        form.setName("画像変更作品");
+        form.setCategory(
+                WorkCategory.HAT
+        );
+        form.setDeletePhoto(false);
+        form.setSubmissionToken(
+                "basic-info-token"
+        );
+
+        MockMultipartFile photo =
+                new MockMultipartFile(
+                        "photo",
+                        "large.jpg",
+                        "image/jpeg",
+                        new byte[] {1, 2, 3}
+                );
+
+        form.setPhoto(photo);
+
+        BindingResult bindingResult =
+                new BeanPropertyBindingResult(
+                        form,
+                        "workBasicInfoForm"
+                );
+
+        doThrow(
+                new ImageValidationException(
+                        ImageValidationException
+                                .Reason
+                                .FILE_TOO_LARGE
+                )
+        ).when(workService)
+                .updateBasicInfo(
+                        1L,
+                        100L,
+                        "画像変更作品",
+                        photo,
+                        WorkCategory.HAT,
+                        false,
+                        "basic-info-token"
+                );
+
+        WorkDetailResult work =
+                new WorkDetailResult(
+                        100L,
+                        "画像変更作品",
+                        WorkCategory.HAT,
+                        10,
+                        20,
+                        "",
+                        WorkStatus.IN_PROGRESS,
+                        null,
+                        "basic-info-token",
+                        true
+                );
+
+        when(
+                workService
+                        .getWorkDetailForRedisplay(
+                                1L,
+                                100L,
+                                "basic-info-token"
+                        )
+        ).thenReturn(work);
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.updateBasicInfo(
+                        100L,
+                        null,
+                        form,
+                        bindingResult,
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "works/detail",
+                viewName
+        );
+
+        assertTrue(
+                bindingResult.hasFieldErrors(
+                        "photo"
+                )
+        );
+
+        assertEquals(
+                "画像は10MB以下のファイルを選択してください。",
+                bindingResult
+                        .getFieldError("photo")
+                        .getDefaultMessage()
+        );
+
+        assertNull(
+                form.getPhoto()
+        );
+
+        assertEquals(
+                "basic-info-token",
+                form.getSubmissionToken()
+        );
+
+        verify(workService)
+                .getWorkDetailForRedisplay(
+                        1L,
+                        100L,
+                        "basic-info-token"
+                );
+    }
+
+    @Test
+    void 不正な基本情報submissionTokenでは最新詳細へredirectする() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        WorkBasicInfoForm form =
+                new WorkBasicInfoForm();
+
+        form.setName("古い入力");
+        form.setCategory(
+                WorkCategory.HAT
+        );
+        form.setDeletePhoto(false);
+        form.setSubmissionToken(
+                "old-token"
+        );
+
+        BindingResult bindingResult =
+                new BeanPropertyBindingResult(
+                        form,
+                        "workBasicInfoForm"
+                );
+
+        doThrow(
+                new InvalidSubmissionTokenException()
+        ).when(workService)
+                .updateBasicInfo(
+                        1L,
+                        100L,
+                        "古い入力",
+                        null,
+                        WorkCategory.HAT,
+                        false,
+                        "old-token"
+                );
+
+        Model model =
+                new ExtendedModelMap();
+
+        String viewName =
+                workController.updateBasicInfo(
+                        100L,
+                        "completed",
+                        form,
+                        bindingResult,
+                        principal,
+                        model
+                );
+
+        assertEquals(
+                "redirect:/works/100?from=completed",
+                viewName
+        );
+
+        verify(submissionTokenManager)
+                .invalidate(
+                        "old-token"
+                );
+
+        verify(
+                workService,
+                never()
+        ).getWorkDetailForRedisplay(
+                anyLong(),
+                anyLong(),
+                anyString()
+        );
+    }
+
+    @Test
+    void 作品画像は安全なHeader付きで返す() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        Resource resource =
+                new ByteArrayResource(
+                        new byte[] {1, 2, 3}
+                );
+
+        when(
+                workService.getWorkImage(
+                        1L,
+                        100L
+                )
+        ).thenReturn(
+                new WorkImageResult(
+                        resource,
+                        "image/jpeg"
+                )
+        );
+
+        ResponseEntity<Resource> response =
+                workController.getWorkImage(
+                        100L,
+                        principal
+                );
+
+        assertEquals(
+                200,
+                response.getStatusCode().value()
+        );
+
+        assertEquals(
+                MediaType.IMAGE_JPEG,
+                response.getHeaders()
+                        .getContentType()
+        );
+
+        assertEquals(
+                "inline",
+                response.getHeaders()
+                        .getFirst(
+                                "Content-Disposition"
+                        )
+        );
+
+        assertEquals(
+                "private, no-store",
+                response.getHeaders()
+                        .getFirst(
+                                "Cache-Control"
+                        )
+        );
+
+        assertEquals(
+                "nosniff",
+                response.getHeaders()
+                        .getFirst(
+                                "X-Content-Type-Options"
+                        )
+        );
+
+        assertEquals(
+                "same-origin",
+                response.getHeaders()
+                        .getFirst(
+                                "Cross-Origin-Resource-Policy"
+                        )
+        );
+
+        assertSame(
+                resource,
+                response.getBody()
+        );
+
+        verify(workService)
+                .getWorkImage(
+                        1L,
+                        100L
+                );
+    }
+
+    @Test
+    void 作品削除後はトップへredirectする() {
+
+        KnittingUserPrincipal principal =
+                mock(KnittingUserPrincipal.class);
+
+        when(principal.getUserId())
+                .thenReturn(1L);
+
+        String viewName =
+                workController.deleteWork(
+                        100L,
+                        principal
+                );
+
+        assertEquals(
+                "redirect:/",
+                viewName
+        );
+
+        verify(workService)
+                .deleteWork(
+                        1L,
+                        100L
                 );
     }
 }

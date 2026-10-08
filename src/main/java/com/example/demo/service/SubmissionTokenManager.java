@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.SessionScope;
 
+import com.example.demo.entity.WorkCategory;
 import com.example.demo.exception.InvalidSubmissionTokenException;
 
 @Component
@@ -22,7 +23,36 @@ public class SubmissionTokenManager {
                 token,
                 new TokenEntry(
                         TokenPurpose.WORK_CREATE,
-                        TokenState.AVAILABLE
+                        TokenState.AVAILABLE,
+                        null
+                )
+        );
+
+        return token;
+    }
+
+    public synchronized String issueBasicInfoToken(
+            Long workId,
+            String name,
+            WorkCategory category,
+            String photoReference) {
+
+        String token = UUID.randomUUID().toString();
+
+        BasicInfoSnapshot snapshot =
+                new BasicInfoSnapshot(
+                        workId,
+                        name,
+                        category,
+                        photoReference
+                );
+
+        tokens.put(
+                token,
+                new TokenEntry(
+                        TokenPurpose.WORK_BASIC_INFO,
+                        TokenState.AVAILABLE,
+                        snapshot
                 )
         );
 
@@ -42,9 +72,38 @@ public class SubmissionTokenManager {
                 token,
                 new TokenEntry(
                         entry.purpose(),
-                        TokenState.PROCESSING
+                        TokenState.PROCESSING,
+                        entry.basicInfoSnapshot()
                 )
         );
+    }
+
+    public synchronized BasicInfoSnapshot beginBasicInfo(
+            String token,
+            Long workId) {
+
+        TokenEntry entry = tokens.get(token);
+
+        if (entry == null
+                || entry.purpose() != TokenPurpose.WORK_BASIC_INFO
+                || entry.state() != TokenState.AVAILABLE
+                || entry.basicInfoSnapshot() == null
+                || !entry.basicInfoSnapshot()
+                        .workId()
+                        .equals(workId)) {
+            throw new InvalidSubmissionTokenException();
+        }
+
+        tokens.put(
+                token,
+                new TokenEntry(
+                        entry.purpose(),
+                        TokenState.PROCESSING,
+                        entry.basicInfoSnapshot()
+                )
+        );
+
+        return entry.basicInfoSnapshot();
     }
 
     public synchronized void complete(String token) {
@@ -65,7 +124,8 @@ public class SubmissionTokenManager {
                 token,
                 new TokenEntry(
                         entry.purpose(),
-                        TokenState.AVAILABLE
+                        TokenState.AVAILABLE,
+                        entry.basicInfoSnapshot()
                 )
         );
     }
@@ -76,8 +136,17 @@ public class SubmissionTokenManager {
         }
     }
 
+    public record BasicInfoSnapshot(
+            Long workId,
+            String name,
+            WorkCategory category,
+            String photoReference
+    ) {
+    }
+
     private enum TokenPurpose {
-        WORK_CREATE
+        WORK_CREATE,
+        WORK_BASIC_INFO
     }
 
     private enum TokenState {
@@ -87,7 +156,8 @@ public class SubmissionTokenManager {
 
     private record TokenEntry(
             TokenPurpose purpose,
-            TokenState state
+            TokenState state,
+            BasicInfoSnapshot basicInfoSnapshot
     ) {
     }
 }

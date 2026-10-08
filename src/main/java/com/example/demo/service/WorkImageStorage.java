@@ -24,6 +24,9 @@ import javax.imageio.stream.ImageInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,6 +45,9 @@ public class WorkImageStorage {
 	        );
 
     private static final String WORKS_DIRECTORY_NAME = "works";
+
+    private static final String DEFAULT_IMAGE_RESOURCE =
+            "static/images/default-work.png";
 
     private static final long MAX_FILE_SIZE =
             10L * 1024L * 1024L;
@@ -327,6 +333,82 @@ public class WorkImageStorage {
                     e
             );
         }
+    }
+
+    public Resource readImage(String photoReference) {
+        if (photoReference == null
+                || !PHOTO_REFERENCE_PATTERN
+                        .matcher(photoReference)
+                        .matches()) {
+            throw new IllegalStateException(
+                    "画像参照が不正です。"
+            );
+        }
+
+        Path targetFile = storageRoot
+                .resolve(photoReference)
+                .toAbsolutePath()
+                .normalize();
+
+        if (!targetFile.startsWith(worksDirectory)) {
+            throw new IllegalStateException(
+                    "画像保存領域外のパスです。"
+            );
+        }
+
+        if (!Files.isRegularFile(targetFile)
+                || !Files.isReadable(targetFile)) {
+
+            logger.warn(
+                    "Work image file is missing or unreadable: {}",
+                    photoReference
+            );
+
+            return null;
+        }
+
+        return new FileSystemResource(targetFile);
+    }
+
+    public Resource readDefaultImage() {
+        ClassPathResource resource =
+                new ClassPathResource(
+                        DEFAULT_IMAGE_RESOURCE
+                );
+
+        if (!resource.exists()
+                || !resource.isReadable()) {
+            throw new IllegalStateException(
+                    "初期画像を読み込めません。"
+            );
+        }
+
+        return resource;
+    }
+
+    public String determineContentType(
+            String photoReference) {
+
+        if (photoReference == null
+                || !PHOTO_REFERENCE_PATTERN
+                        .matcher(photoReference)
+                        .matches()) {
+            throw new IllegalStateException(
+                    "画像参照が不正です。"
+            );
+        }
+
+        if (photoReference.endsWith(".jpg")) {
+            return "image/jpeg";
+        }
+
+        if (photoReference.endsWith(".png")) {
+            return "image/png";
+        }
+
+        throw new IllegalStateException(
+                "画像形式が不正です。"
+        );
     }
 
     private String determineExpectedFormat(

@@ -10,15 +10,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
-import org.springframework.security.web.access.HttpStatusAccessDeniedHandler;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
 import org.springframework.security.web.savedrequest.NullRequestCache;
@@ -26,7 +27,6 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatchers;
-
 
 @Configuration
 public class SecurityConfig {
@@ -191,9 +191,32 @@ public class SecurityConfig {
                 (request, response, accessDeniedException) ->
                         response.sendError(403);
 
-        AccessDeniedHandler asyncForbiddenHandler =
-                new HttpStatusAccessDeniedHandler(HttpStatus.FORBIDDEN);
+                        AccessDeniedHandler asyncForbiddenHandler =
+                                (request, response, accessDeniedException) -> {
 
+                                    Authentication authentication =
+                                            org.springframework.security.core.context
+                                                    .SecurityContextHolder
+                                                    .getContext()
+                                                    .getAuthentication();
+
+                                    if (authentication == null
+                                            || !authentication.isAuthenticated()
+                                            || authentication
+                                                    instanceof AnonymousAuthenticationToken) {
+
+                                        response.sendError(
+                                                HttpStatus.UNAUTHORIZED.value()
+                                        );
+
+                                        return;
+                                    }
+
+                                    response.sendError(
+                                            HttpStatus.FORBIDDEN.value()
+                                    );
+                                };
+                                
         http.requestCache(requestCache -> requestCache
                 .requestCache(new NullRequestCache())
         );
