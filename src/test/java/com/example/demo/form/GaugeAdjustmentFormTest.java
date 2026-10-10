@@ -173,7 +173,7 @@ class GaugeAdjustmentFormTest {
             );
 
             assertEquals(
-                    "指定目ゲージは0.01～999.99の範囲で入力してください。",
+            		"指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。",
                     violation.getMessage()
             );
         }
@@ -208,7 +208,7 @@ class GaugeAdjustmentFormTest {
             );
 
             assertEquals(
-                    "指定目ゲージは小数第2位までで入力してください。",
+            		"指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。",
                     violation.getMessage()
             );
         }

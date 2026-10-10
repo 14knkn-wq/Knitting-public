@@ -5,13 +5,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Controller;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
-
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 class GlobalExceptionHandlerTest {
 
@@ -30,6 +31,14 @@ class GlobalExceptionHandlerTest {
     void workNotFoundExceptionReturns404View() throws Exception {
 
         mockMvc.perform(get("/test/work-not-found"))
+                .andExpect(status().isNotFound())
+                .andExpect(view().name("error/404"));
+    }
+
+    @Test
+    void noResourceFoundExceptionReturns404View() throws Exception {
+
+        mockMvc.perform(get("/test/no-resource"))
                 .andExpect(status().isNotFound())
                 .andExpect(view().name("error/404"));
     }
@@ -60,6 +69,16 @@ class GlobalExceptionHandlerTest {
 
             throw new MaxUploadSizeExceededException(
                     11 * 1024 * 1024
+            );
+        }
+
+        @GetMapping("/test/no-resource")
+        String noResourceFound() throws Exception {
+
+            throw new NoResourceFoundException(
+                    HttpMethod.GET,
+                    "/test/no-resource",
+                    "favicon.ico"
             );
         }
     }

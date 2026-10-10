@@ -284,6 +284,107 @@ if (basicInfoForm.dataset.hasErrors === "true") {
     updateBasicInfoDirty();
 }
 
+const nameLengthError =
+        document.getElementById(
+                "basic-info-name-length-error"
+        );
+
+		function updateNameLengthValidation() {
+		    const isBlank =
+		            nameInput.value.trim().length === 0;
+
+		    const isTooLong =
+		            nameInput.value.length > 50;
+
+		    if (isBlank) {
+		        nameLengthError.textContent =
+		                "作品名を入力してください。";
+		    } else if (isTooLong) {
+		        nameLengthError.textContent =
+		                "作品名は50文字以内で入力してください。";
+		    }
+
+		    nameLengthError.hidden =
+		            !isBlank && !isTooLong;
+
+		    basicInfoSaveButton.disabled =
+		            isBlank || isTooLong;
+		}
+
+nameInput.addEventListener(
+        "input",
+        updateNameLengthValidation
+);
+
+basicInfoCancelButton.addEventListener(
+        "click",
+        updateNameLengthValidation
+);
+
+updateNameLengthValidation();
+
+// 写真の容量チェック（上限10MiB）
+const photoSizeError =
+        document.getElementById(
+                "basic-info-photo-size-error"
+        );
+
+const MAX_PHOTO_SIZE_BYTES =
+        10 * 1024 * 1024;
+
+function updatePhotoSizeValidation() {
+    const selectedFile =
+            photoInput.files[0];
+
+    const isTooLarge =
+            selectedFile !== undefined
+            && selectedFile.size > MAX_PHOTO_SIZE_BYTES;
+
+    // 写真のエラーメッセージを切り替える
+    photoSizeError.hidden = !isTooLarge;
+
+    // 作品名と写真の両方を確認する
+    const isBlankName =
+            nameInput.value.trim().length === 0;
+
+    const isTooLongName =
+            nameInput.value.length > 50;
+
+    basicInfoSaveButton.disabled =
+            isBlankName
+            || isTooLongName
+            || isTooLarge;
+}
+
+// 写真を選択したとき
+photoInput.addEventListener(
+        "change",
+        updatePhotoSizeValidation
+);
+
+// 作品名を変更したとき
+nameInput.addEventListener(
+        "input",
+        updatePhotoSizeValidation
+);
+
+// 編集をキャンセルしたとき
+basicInfoCancelButton.addEventListener(
+        "click",
+        updatePhotoSizeValidation
+);
+
+// 写真の削除を選択したとき
+if (deletePhotoInput !== null) {
+    deletePhotoInput.addEventListener(
+            "change",
+            updatePhotoSizeValidation
+    );
+}
+
+// 初期状態も確認する
+updatePhotoSizeValidation();
+
 /* ========================================
  * 未保存離脱
  * ======================================== */

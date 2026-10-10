@@ -187,14 +187,21 @@
                             th:field="*{photo}"
                             accept=".jpg,.jpeg,.png,image/jpeg,image/png">
 
-                        <p>
-                            JPEGまたはPNG・10MB以下
-                        </p>
+						<p>
+							    JPEGまたはPNG・10MB以下
+						</p>
 
-                        <p
-                            th:if="${#fields.hasErrors('photo')}"
-                            th:errors="*{photo}">
-                        </p>
+						<p
+							    id="basic-info-photo-size-error"
+							    role="alert"
+							    hidden>
+							    画像は10MB以下のファイルを選択してください。
+						</p>
+
+						<p
+							    th:if="${#fields.hasErrors('photo')}"
+							    th:errors="*{photo}">
+						</p>
 
                         <label
                             th:if="${work.hasPhoto}">
@@ -216,11 +223,19 @@
                             作品名
                         </label>
 
-                        <input
-                            type="text"
-                            id="name"
-                            required
-                            th:field="*{name}">
+						<input
+						    type="text"
+						    id="name"
+						    required
+						    aria-describedby="basic-info-name-length-error"
+						    th:field="*{name}">
+
+						<p
+						    id="basic-info-name-length-error"
+						    role="alert"
+						    hidden>
+						    作品名は50文字以内で入力してください。
+						</p>
 
                         <p
                             th:if="${#fields.hasErrors('name')}"

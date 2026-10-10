@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import org.springframework.web.servlet.support.RequestContextUtils;
 import org.springframework.web.servlet.view.RedirectView;
-
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -63,6 +63,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WorkNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleWorkNotFound() {
+        return "error/404";
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleNoResourceFound() {
         return "error/404";
     }
 

@@ -123,21 +123,9 @@
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-			     <groupId>org.apache.maven.plugins</groupId>
-			     <artifactId>maven-failsafe-plugin</artifactId>
-			     <executions>
-			         <execution>
-			             <goals>
-			                 <goal>verify</goal>
-			                 <goal>verify</goal>
-			             </goals>
-			         </execution>
-			     </executions>
-			</plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
 		</plugins>
 	</build>
 

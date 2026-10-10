@@ -10,7 +10,7 @@
 | 文書種別 | 詳細設計書 |
 | 文書状態 | 詳細設計01〜13 統合確定版 |
 | 作成日 | 2026年9月11日 |
-| 実装状況 | Step14「S-11 作品詳細・編集」までの機能実装・確認を完了。Phase5は未完了 |
+| 実装状況 | Step14「S-11 作品詳細・編集」までの機能実装・確認を完了。Step15総合テストを完了。Phase5のその他の項目は未完了 |
 | 技術前提 | Java 25 / Spring Boot 4.0.8 / Maven / Eclipse / Spring MVC / Thymeleaf / HTML / CSS / 必要最小限のJavaScript / Spring Data JPA / Spring Security / MySQL Community 8.4 LTS / Flyway |
 
 ### 本書の目的
@@ -4888,13 +4888,14 @@ Spring Securityの`AuthenticationEntryPoint`側で処理する。
 
 ### 404 Not Found
 
-404は、形式上正常なリクエストで対象業務リソースが利用できない場合に使用する。
+404は、形式上正常なリクエストで対象業務リソース、ページまたは静的リソースが利用できない場合に使用する。
 
 例：
 
 - 本人所有作品が存在しない
 - workIdは存在するが他ユーザー所有
 - 削除済み作品を参照
+- MVCへ到達した存在しないページ・静的リソース（`NoResourceFoundException`）
 
 通常HTML：
 
@@ -5235,6 +5236,7 @@ src/main/resources/templates/error/
 担当：
 
 - `WorkNotFoundException`
+- `NoResourceFoundException`をHTTP 404・`error/404`へ変換し、汎用例外の500処理へ流さない
 - 通常HTMLの業務例外
 - 通常HTMLの想定外システム例外
 - 共通HTMLエラー画面への変換
@@ -7111,6 +7113,8 @@ private Integer originalRowCount;
 @Digits(integer = 3, fraction = 2)
 ```
 
+4種類のゲージ項目では、`@DecimalMin`・`@DecimalMax`・`@Digits`のメッセージを、項目ごとに「（項目名）は0.01～999.99の範囲で、小数第2位まで入力してください。」へ統一します。必須・型変換エラーの文言は分け、画面では当該フィールドの先頭エラーを1件表示します。入力範囲・小数桁数・計算式は変更しません。
+
 ---
 
 #### 元の目数・段数
@@ -8526,8 +8530,7 @@ JPEGまたはPNG形式の画像を選択してください。
 ```text
 指定目ゲージを入力してください。
 指定目ゲージは数値で入力してください。
-指定目ゲージは0.01～999.99の範囲で入力してください。
-指定目ゲージは小数第2位までで入力してください。
+指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。
 ```
 
 ##### 実測目ゲージ
@@ -8535,8 +8538,7 @@ JPEGまたはPNG形式の画像を選択してください。
 ```text
 実測目ゲージを入力してください。
 実測目ゲージは数値で入力してください。
-実測目ゲージは0.01～999.99の範囲で入力してください。
-実測目ゲージは小数第2位までで入力してください。
+実測目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。
 ```
 
 ##### 元の目数
@@ -8551,8 +8553,7 @@ JPEGまたはPNG形式の画像を選択してください。
 ```text
 指定段ゲージを入力してください。
 指定段ゲージは数値で入力してください。
-指定段ゲージは0.01～999.99の範囲で入力してください。
-指定段ゲージは小数第2位までで入力してください。
+指定段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。
 ```
 
 ##### 実測段ゲージ
@@ -8560,8 +8561,7 @@ JPEGまたはPNG形式の画像を選択してください。
 ```text
 実測段ゲージを入力してください。
 実測段ゲージは数値で入力してください。
-実測段ゲージは0.01～999.99の範囲で入力してください。
-実測段ゲージは小数第2位までで入力してください。
+実測段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。
 ```
 
 ##### 元の段数
@@ -13475,6 +13475,7 @@ work-list.js
 
 work-detail.js
 ├─ S-11基本情報dirty判定
+├─ 作品名・選択画像容量の事前チェックと保存ボタン制御
 ├─ 未保存離脱dialog
 ├─ beforeunload
 ├─ allowPageLeave
@@ -13496,6 +13497,10 @@ yarn-combination.js
 ├─ 計算ボタン状態
 └─ 再計算案内
 ```
+
+S-11の事前入力チェックでは、作品名の未入力・空白のみ、ブラウザー側の50文字超過判定、および選択画像の`size > 10 * 1024 * 1024`を検出します。該当項目付近にエラーを表示し、いずれかが不正な間は基本情報の保存ボタンを無効にします。作品名input、写真change、写真削除change、キャンセル時に状態を再判定します。画像の形式・実形式・容量・寸法の正式な検証は`WorkImageStorage`、作品名の正式な検証はFormで行います。
+
+現行`work-detail.js`の作品名判定は`value.trim()`による空白判定と、元の`value.length`によるUTF-16コード単位の文字数判定です。サーバー側は`strip()`後のUnicodeコードポイント数を判定します。このため、絵文字等や前後空白を含む入力の事前判定には差異が残っています。正式な1～50 Unicodeコードポイントの仕様は変更せず、判定の整合は確認事項とします。
 
 ---
 
@@ -14001,6 +14006,7 @@ Servlet Multipart側は少し大きく設定し、10MiB付近の業務Validation
 spring.servlet.multipart.max-file-size=11MB
 spring.servlet.multipart.max-request-size=12MB
 spring.servlet.multipart.file-size-threshold=0B
+server.tomcat.max-swallow-size=16MB
 ```
 
 意味：
@@ -14017,6 +14023,8 @@ request全体上限
 ```
 
 `file-size-threshold=0B` によりMultipart fileをメモリへ全保持するのではなくcontainerのtemporary storageを利用する。
+
+`server.tomcat.max-swallow-size=16MB`は、アップロード拒否後の残りのrequest bodyをTomcatが読み捨てる上限を調整し、容量上限付近の接続リセット対策として使用する。画像の業務上限10MiB、Servlet単一file上限11MB、request全体上限12MBは変更しない。
 
 以下は設定しない。
 
@@ -14826,6 +14834,7 @@ spring.jpa.show-sql=false
 spring.servlet.multipart.max-file-size=11MB
 spring.servlet.multipart.max-request-size=12MB
 spring.servlet.multipart.file-size-threshold=0B
+server.tomcat.max-swallow-size=16MB
 
 
 # ==================================================
@@ -15648,6 +15657,12 @@ mvn verify
 ```bash
 mvn clean verify
 ```
+
+Step15の手動総合テストは、開発者から報告されたブラウザー確認結果に基づき完了とします。認証、作品管理、入力検証、画像、計算、簡易カウンター、対応表およびエラー処理を確認済みです。今回の資料更新ではブラウザー確認・Maven実行の再実施は行わず、現行コードとZIP内のテストレポートを照合しています。
+
+`mvn clean verify`の最終成功は開発者報告で確認済みです。ZIP内のSurefireレポートは36ファイル・281件、Failsafeレポートは5ファイル・14件で、いずれも失敗・エラー・スキップ0件です。`GlobalExceptionHandlerTest`では`NoResourceFoundException`の404を確認し、`GaugeAdjustmentFormTest`では統一後の期待メッセージを確認しています。画像の容量・寸法・形式等は既存の`WorkImageStorageTest`でも検証しています。
+
+現行`pom.xml`は`spring-boot-starter-parent`を使用し、Failsafe Pluginを宣言しています。プロジェクトPOM単体に`executions`／goalsが明記されていないことだけで、親POMからの設定継承や`*IT`の実行を否定しません。今回確認した自動テストの根拠は上記の保存済みレポートであり、Maven実行ログ・有効POMの再取得は行っていません。`pom.xml`およびテストコードは変更しません。
 
 実装中はEclipseやMavenからtest method / class単位で実行してよい。
 

@@ -15,31 +15,31 @@ public class GaugeAdjustmentForm {
 
     @DecimalMin(
             value = "0.01",
-            message = "指定目ゲージは0.01～999.99の範囲で入力してください。"
+            message = "指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @DecimalMax(
             value = "999.99",
-            message = "指定目ゲージは0.01～999.99の範囲で入力してください。"
+            message = "指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @Digits(
             integer = 3,
             fraction = 2,
-            message = "指定目ゲージは小数第2位までで入力してください。"
+            message = "指定目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     private BigDecimal specifiedStitchGauge;
 
     @DecimalMin(
             value = "0.01",
-            message = "実測目ゲージは0.01～999.99の範囲で入力してください。"
+            message = "実測目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @DecimalMax(
             value = "999.99",
-            message = "実測目ゲージは0.01～999.99の範囲で入力してください。"
+            message = "実測目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @Digits(
             integer = 3,
             fraction = 2,
-            message = "実測目ゲージは小数第2位までで入力してください。"
+            message = "実測目ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     private BigDecimal measuredStitchGauge;
 
@@ -55,31 +55,31 @@ public class GaugeAdjustmentForm {
 
     @DecimalMin(
             value = "0.01",
-            message = "指定段ゲージは0.01～999.99の範囲で入力してください。"
+            message = "指定段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @DecimalMax(
             value = "999.99",
-            message = "指定段ゲージは0.01～999.99の範囲で入力してください。"
+            message = "指定段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @Digits(
             integer = 3,
             fraction = 2,
-            message = "指定段ゲージは小数第2位までで入力してください。"
+            message = "指定段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     private BigDecimal specifiedRowGauge;
 
     @DecimalMin(
             value = "0.01",
-            message = "実測段ゲージは0.01～999.99の範囲で入力してください。"
+            message = "実測段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @DecimalMax(
             value = "999.99",
-            message = "実測段ゲージは0.01～999.99の範囲で入力してください。"
+            message = "実測段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     @Digits(
             integer = 3,
             fraction = 2,
-            message = "実測段ゲージは小数第2位までで入力してください。"
+            message = "実測段ゲージは0.01～999.99の範囲で、小数第2位まで入力してください。"
     )
     private BigDecimal measuredRowGauge;
 
