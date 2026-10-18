@@ -57,11 +57,65 @@ const workCreateForm =
 const submitButton =
         document.getElementById("submit-button");
 
-if (workCreateForm && submitButton) {
-    workCreateForm.addEventListener(
-            "submit",
-            () => {
-                submitButton.disabled = true;
-            }
-    );
-}
+		if (workCreateForm && submitButton) {
+		    const nameInput =
+		            document.getElementById("name");
+
+		    let isSubmitting = false;
+
+		    function getNameForValidation() {
+		        const whitespace =
+		                "[\\u0009-\\u000D\\u001C-\\u0020\\u1680"
+		                + "\\u2000-\\u2006\\u2008-\\u200A"
+		                + "\\u2028\\u2029\\u205F\\u3000]";
+
+		        const pattern = new RegExp(
+		                "^" + whitespace + "+|" + whitespace + "+$",
+		                "g"
+		        );
+
+		        return nameInput.value.replace(pattern, "");
+		    }
+
+		    function updateSubmitButton() {
+		        const nameForValidation =
+		                getNameForValidation();
+
+		        const isInvalidName =
+		                nameForValidation.length === 0
+		                || Array.from(nameForValidation).length > 50;
+
+		        submitButton.disabled =
+		                isSubmitting
+		                || isInvalidName
+		                || !workCreateForm.checkValidity();
+		    }
+
+		    workCreateForm.addEventListener(
+		            "input",
+		            updateSubmitButton
+		    );
+
+		    workCreateForm.addEventListener(
+		            "change",
+		            updateSubmitButton
+		    );
+
+		    workCreateForm.addEventListener(
+		            "submit",
+		            () => {
+		                isSubmitting = true;
+		                submitButton.disabled = true;
+		            }
+		    );
+
+		    window.addEventListener(
+		            "pageshow",
+		            () => {
+		                isSubmitting = false;
+		                updateSubmitButton();
+		            }
+		    );
+
+		    updateSubmitButton();
+		}

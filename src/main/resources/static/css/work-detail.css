@@ -14,8 +14,12 @@
     margin-top: 0;
 }
 
-#work-detail p[role="status"] {
-    margin-bottom: 1.5rem;
+#basic-info-edit > div:first-of-type > p {
+    margin-block: 0.25rem;
+}
+
+#photo-file-name {
+    overflow-wrap: anywhere;
 }
 
 #basic-info-form > div:first-of-type {
@@ -48,21 +52,53 @@
     margin-block: 0.25rem 0;
 }
 
+#work-name-display,
+#work-category-display {
+    overflow-wrap: anywhere;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.6;
+}
 #basic-info-edit label:not(:has(input[type="checkbox"])) {
     display: block;
     margin-bottom: 0.35rem;
+    font-weight: 600;
 }
 
-#basic-info-edit input[type="text"],
+#basic-info-edit input[type="text"],#basic-info-edit input[type="text"],
 #basic-info-edit select {
     box-sizing: border-box;
     width: min(100%, 32rem);
     min-height: 2.5rem;
 }
 
+#basic-info-edit input[type="text"],
+#basic-info-edit select {
+    border: 2px solid #767676;
+}
+
 #basic-info-edit input[type="file"] {
     display: block;
+    width: min(100%, 12rem);
     max-width: 100%;
+    margin-inline: auto;
+    font-size: 0;
+}
+
+#basic-info-edit input[type="file"]::file-selector-button {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 2.5rem;
+    margin: 0;
+    padding: 0.25rem 1rem;
+    border: 1px solid #777;
+    border-radius: 0.25rem;
+    color: #333;
+    background-color: #f0f0f0;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    cursor: pointer;
 }
 
 #basic-info-save-button,
@@ -84,6 +120,7 @@
 #work-counters > div > div {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
 }
 
@@ -94,6 +131,7 @@
     min-height: 3rem;
     text-align: center;
     font-size: 1.25rem;
+    border: 2px solid #767676;
 }
 
 #stitch-decrement-button,
@@ -103,6 +141,32 @@
     min-width: 3rem;
     min-height: 3rem;
     font-size: 1.25rem;
+}
+
+#basic-info-edit-button,
+#basic-info-save-button,
+#basic-info-cancel-button {
+    min-height: 2.5rem;
+    padding-inline: 1rem;
+}
+
+#basic-info-edit-button,
+#back-to-in-progress-link,
+#back-to-completed-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 2.5rem;
+    padding: 0.25rem 1rem;
+    border: 1px solid #777;
+    border-radius: 0.25rem;
+    color: #333;
+    background-color: #f0f0f0;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+    text-decoration: none;
 }
 
 #stitch-save-status,
@@ -125,38 +189,66 @@
     width: 100%;
     min-height: 10rem;
     resize: vertical;
+    border: 2px solid #767676;
 }
 
 #work-state-heading + fieldset {
+    box-sizing: border-box;
+    width: min(100%, 24rem);
+    min-width: 0;
+    margin-inline: auto;
     margin-bottom: 1rem;
+    border: 2px solid #767676;
+    background-color: #ffffff;
 }
 
 #work-state-heading + fieldset label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-right: 1rem;
+    display: flex;
+    justify-content: center;
+    margin-block: 0.5rem;
+    margin-right: 0;
 }
 
 #completion-date-container {
-    margin-top: 1rem;
+    margin-top: 2rem;
 }
 
 #completion-date-container label {
     display: block;
     margin-bottom: 0.35rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    line-height: 1.5;
 }
 
 #completion-date {
-    min-height: 2.5rem;
+    box-sizing: border-box;
+    width: 12rem;
+    max-width: 100%;
+    min-height: 2.75rem;
+    padding: 0.375rem 0.75rem;
+    border: 2px solid #767676;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+#work-detail section[aria-labelledby="delete-work-heading"] {
+    margin-top: 6rem;
 }
 
 #delete-work-heading {
     margin-bottom: 0.5rem;
 }
-
 #delete-work-button {
-    min-height: 2.5rem;
+    box-sizing: border-box;
+    min-width: 9rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.25rem;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
 }
 
 dialog {
@@ -171,6 +263,13 @@ dialog::backdrop {
 
 dialog form {
     margin-top: 1.5rem;
+}
+
+#delete-work-form {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
 }
 
 dialog button {
@@ -205,10 +304,10 @@ dialog button {
         padding-top: 1rem;
     }
 
-    #basic-info-form > div:first-of-type {
-        align-items: stretch;
-        flex-direction: column;
-    }
+	#basic-info-form > div:first-of-type {
+	    align-items: center;
+	    flex-direction: row;
+	}
 
     #work-counters {
         grid-template-columns: 1fr;
@@ -219,10 +318,10 @@ dialog button {
         max-height: none;
     }
 
-    #basic-info-edit input[type="text"],
-    #basic-info-edit select {
-        width: 100%;
-    }
+	#basic-info-edit input[type="text"],
+	#basic-info-edit select {
+	    border: 2px solid #767676;
+	}
 
     #work-state-heading + fieldset label {
         display: flex;
@@ -232,4 +331,110 @@ dialog button {
     dialog {
         padding: 1rem;
     }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    #basic-info-edit-button:not(:disabled):hover,
+    #back-to-in-progress-link:hover,
+    #back-to-completed-link:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20);
+    }
+}
+
+@media (hover: hover) and (pointer: fine)
+        and (prefers-reduced-motion: no-preference) {
+    #back-to-in-progress-link,
+    #back-to-completed-link {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    #back-to-in-progress-link:hover,
+    #back-to-completed-link:hover {
+        transform: translateY(-2px);
+    }
+}
+
+.back-link-arrow {
+    font-size: 1.3rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+#work-photo-preview {
+    display: block;
+    width: min(100%, 640px);
+    max-height: 480px;
+    margin-block: 1rem;
+    margin-inline: auto;
+    object-fit: contain;
+    object-position: center;
+}
+
+#unsaved-leave-dialog,
+#delete-work-dialog {
+    border: 2px solid #b0c4de;
+    border-radius: 0.75rem;
+    color: #333333;
+    background-color: #ffffff;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+#unsaved-leave-dialog > button {
+    box-sizing: border-box;
+    min-width: 7rem;
+    min-height: 2.75rem;
+    margin: 0.25rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #62798b;
+    border-radius: 0.375rem;
+    color: #555555;
+    background-color: #d6e6f5;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+#unsaved-leave-dialog > #unsaved-leave-confirm-button {
+    border-color: #d68da5;
+    background-color: #ffe0ea;
+}
+
+#delete-work-form > button {
+    box-sizing: border-box;
+    min-width: 7rem;
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #62798b;
+    border-radius: 0.375rem;
+    color: #555555;
+    background-color: #d6e6f5;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+#delete-work-form > #delete-work-confirm-button {
+    border-color: #d68da5;
+    background-color: #ffe0ea;
+}
+
+#basic-info-view > div > span {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.6;
+}
+
+#work-name-display,
+#work-category-display {
+    box-sizing: border-box;
+    width: min(100%, 40rem);
+    margin-inline: auto;
+    padding: 0.75rem 1rem;
+    border: 2px solid #b0c4de;
+    border-radius: 0.5rem;
+    background-color: #ffffff;
 }

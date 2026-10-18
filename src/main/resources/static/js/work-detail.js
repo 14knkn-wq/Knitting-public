@@ -289,12 +289,30 @@ const nameLengthError =
                 "basic-info-name-length-error"
         );
 
-		function updateNameLengthValidation() {
-		    const isBlank =
-		            nameInput.value.trim().length === 0;
+		function getNameForValidation() {
+		    // Javaのstrip()と同じ空白文字を、前後から除きます。
+		    const whitespace =
+		            "[\\u0009-\\u000D\\u001C-\\u0020\\u1680"
+		            + "\\u2000-\\u2006\\u2008-\\u200A"
+		            + "\\u2028\\u2029\\u205F\\u3000]";
 
-		    const isTooLong =
-		            nameInput.value.length > 50;
+		    const pattern = new RegExp(
+		            "^" + whitespace + "+|" + whitespace + "+$",
+		            "g"
+		    );
+
+		    return nameInput.value.replace(pattern, "");
+		}
+
+		function updateNameLengthValidation() {
+			const nameForValidation =
+			        getNameForValidation();
+
+			const isBlank =
+			        nameForValidation.length === 0;
+
+			const isTooLong =
+			        countCodePoints(nameForValidation) > 50;
 
 		    if (isBlank) {
 		        nameLengthError.textContent =
@@ -343,12 +361,15 @@ function updatePhotoSizeValidation() {
     // 写真のエラーメッセージを切り替える
     photoSizeError.hidden = !isTooLarge;
 
-    // 作品名と写真の両方を確認する
-    const isBlankName =
-            nameInput.value.trim().length === 0;
+	// 作品名と写真の両方を確認する
+	const nameForValidation =
+	        getNameForValidation();
 
-    const isTooLongName =
-            nameInput.value.length > 50;
+	const isBlankName =
+	        nameForValidation.length === 0;
+
+	const isTooLongName =
+	        countCodePoints(nameForValidation) > 50;
 
     basicInfoSaveButton.disabled =
             isBlankName
@@ -384,6 +405,39 @@ if (deletePhotoInput !== null) {
 
 // 初期状態も確認する
 updatePhotoSizeValidation();
+
+// 選択した写真のファイル名を表示する
+const photoFileName =
+        document.getElementById("photo-file-name");
+
+function updatePhotoFileName() {
+    const selectedFile =
+            photoInput.files[0];
+
+    photoFileName.textContent =
+            selectedFile
+                    ? selectedFile.name
+                    : "選択されていません";
+}
+
+photoInput.addEventListener(
+        "change",
+        updatePhotoFileName
+);
+
+basicInfoCancelButton.addEventListener(
+        "click",
+        updatePhotoFileName
+);
+
+if (deletePhotoInput !== null) {
+    deletePhotoInput.addEventListener(
+            "change",
+            updatePhotoFileName
+    );
+}
+
+updatePhotoFileName();
 
 /* ========================================
  * 未保存離脱
@@ -1586,7 +1640,7 @@ async function saveMemo(
         );
 
 		showFieldError(
-		        workStateError,
+		        memoError,
 		        "他の変更と競合したため保存できませんでした。ページを再読み込みしてください。"
 		);
 
@@ -2121,7 +2175,7 @@ async function saveWorkState(
         );
 
 		showFieldError(
-		        memoError,
+		        workStateError,
 		        "他の変更と競合したため保存できませんでした。ページを再読み込みしてください。"
 		);
 

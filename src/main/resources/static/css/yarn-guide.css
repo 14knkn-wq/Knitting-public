@@ -1,0 +1,39 @@
+.yarn-guide-table-wrapper {
+    max-height: 60vh;
+    overflow: auto;
+}
+
+.yarn-guide-table-wrapper thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background-color: #d6e6f5;
+}
+
+.yarn-guide-table-wrapper th,
+.yarn-guide-table-wrapper td {
+    white-space: nowrap;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #b8b8b8;
+    background-color: #ffffff;
+}
+
+
+.yarn-guide-table-wrapper table {
+    font-size: 1.125rem;
+    line-height: 1.5;
+    border-collapse: collapse;
+    margin-inline: auto;
+}
+
+.yarn-guide-table-wrapper th:nth-child(n + 3),
+.yarn-guide-table-wrapper td:nth-child(n + 3) {
+    padding-inline: 2.5rem;
+}
+
+@media (max-width: 767px) {
+    body > main > h1 {
+        font-size: 1.5rem;
+        line-height: 1.5;
+    }
+}

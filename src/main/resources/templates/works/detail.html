@@ -20,9 +20,13 @@
         作品詳細 | Knitting
     </title>
 
-    <link
-        rel="stylesheet"
-        th:href="@{/css/work-detail.css}">
+	<link
+	    rel="stylesheet"
+	    th:href="@{/css/common.css}">
+
+	<link
+	    rel="stylesheet"
+	    th:href="@{/css/work-detail.css}">
 </head>
 
 <body
@@ -31,7 +35,7 @@
     data-allow-page-leave="false">
 
 	<!-- 遷移元が完成一覧、またはfromなしで現在完成 -->
-	<div
+	<th:block
 	    th:if="${from == 'completed'
 	            or (from == null
 	                and work.status.name() == 'COMPLETED')}">
@@ -41,10 +45,10 @@
 	            :: authenticatedHeader('completed')}">
 	    </div>
 
-	</div>
+	</th:block>
 
 	<!-- それ以外は制作中一覧 -->
-	<div
+	<th:block
 	    th:unless="${from == 'completed'
 	                or (from == null
 	                    and work.status.name() == 'COMPLETED')}">
@@ -54,7 +58,7 @@
 	            :: authenticatedHeader('in-progress')}">
 	    </div>
 
-	</div>
+	</th:block>
 
     <main id="work-detail">
 
@@ -102,7 +106,10 @@
                                 and work.status.name()
                                     == 'IN_PROGRESS')}"
                     th:href="@{/works/in-progress}">
-                    ← 制作中一覧へ戻る
+					<strong
+					    class="back-link-arrow"
+					    aria-hidden="true">⬅&#xFE0E;&nbsp;</strong>
+					制作中一覧へ戻る
                 </a>
 
                 <a
@@ -112,7 +119,10 @@
                                 and work.status.name()
                                     == 'COMPLETED')}"
                     th:href="@{/works/completed}">
-                    ← 完成一覧へ戻る
+					<strong
+					    class="back-link-arrow"
+					    aria-hidden="true">⬅&#xFE0E;&nbsp;</strong>
+					完成一覧へ戻る
                 </a>
 
             </div>
@@ -181,11 +191,17 @@
                             写真を変更
                         </label>
 
-                        <input
-                            type="file"
-                            id="photo"
-                            th:field="*{photo}"
-                            accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+						<input
+						    type="file"
+						    id="photo"
+						    th:field="*{photo}"
+						    accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+
+						<p
+						    id="photo-file-name"
+						    role="status">
+						    選択されていません
+						</p>
 
 						<p>
 							    JPEGまたはPNG・10MB以下

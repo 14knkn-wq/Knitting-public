@@ -3,9 +3,16 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
     <title>2本取り・引き揃え計算</title>
-	
-	<script th:src="@{/js/yarn-combination.js}" defer></script>
+
+    <link rel="stylesheet"
+          th:href="@{/css/common.css}">
+    <link rel="stylesheet"
+          th:href="@{/css/yarn-combination.css}">
+
+    <script th:src="@{/js/yarn-combination.js}" defer></script>
 </head>
 
 <body>
@@ -219,79 +226,106 @@
             id="yarn-combination-result"
             th:if="${combinationResult != null}">
 
-            <h2>計算結果</h2>
+			<section>
+			    <h3>入力内容</h3>
 
-            <section>
-                <h3>入力内容</h3>
+			    <table class="yarn-combination-summary-table">
+			        <tbody
+			            th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).DOUBLE_STRAND}">
 
-                <div
-                    th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).DOUBLE_STRAND}">
+			            <tr>
+			                <th scope="row">重量</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.doubleStrandWeight}"></span>
+			                    g
+			                </td>
+			            </tr>
 
-                    <p>
-                        重量：
-                        <span th:text="${yarnCombinationForm.doubleStrandWeight}"></span>
-                        g
-                    </p>
+			            <tr>
+			                <th scope="row">長さ</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.doubleStrandLength}"></span>
+			                    m
+			                </td>
+			            </tr>
 
-                    <p>
-                        長さ：
-                        <span th:text="${yarnCombinationForm.doubleStrandLength}"></span>
-                        m
-                    </p>
+			        </tbody>
 
-                </div>
+			        <tbody
+			            th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).COMBINATION}">
 
-                <div
-                    th:if="${yarnCombinationForm.mode == T(com.example.demo.domain.YarnCombinationMode).COMBINATION}">
+			            <tr>
+			                <th scope="row">糸1 重量</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.yarn1Weight}"></span>
+			                    g
+			                </td>
+			            </tr>
 
-                    <p>
-                        糸1 重量：
-                        <span th:text="${yarnCombinationForm.yarn1Weight}"></span>
-                        g
-                    </p>
+			            <tr>
+			                <th scope="row">糸1 長さ</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.yarn1Length}"></span>
+			                    m
+			                </td>
+			            </tr>
 
-                    <p>
-                        糸1 長さ：
-                        <span th:text="${yarnCombinationForm.yarn1Length}"></span>
-                        m
-                    </p>
+			            <tr>
+			                <th scope="row">糸2 重量</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.yarn2Weight}"></span>
+			                    g
+			                </td>
+			            </tr>
 
-                    <p>
-                        糸2 重量：
-                        <span th:text="${yarnCombinationForm.yarn2Weight}"></span>
-                        g
-                    </p>
+			            <tr>
+			                <th scope="row">糸2 長さ</th>
+			                <td>
+			                    <span th:text="${yarnCombinationForm.yarn2Length}"></span>
+			                    m
+			                </td>
+			            </tr>
 
-                    <p>
-                        糸2 長さ：
-                        <span th:text="${yarnCombinationForm.yarn2Length}"></span>
-                        m
-                    </p>
+			        </tbody>
+			    </table>
+			</section>
 
-                </div>
-            </section>
+			<section>
+			    <h2>計算結果</h2>
+				<table class="yarn-combination-summary-table">
+				    <tbody>
+				        <tr>
+				            <th scope="row">100gあたりの換算糸長</th>
+				            <td>
+				                <strong>
+				                    約<span th:text="${combinationResult.lengthPer100g}"></span>m / 100g
+				                </strong>
+				            </td>
+				        </tr>
 
-            <p>
-                100gあたりの換算糸長：
-                <strong>
-                    約<span th:text="${combinationResult.lengthPer100g}"></span>m / 100g
-                </strong>
-            </p>
+				        <tr>
+				            <th scope="row">推定される毛糸の太さ</th>
+				            <td>
+				                <strong th:text="${combinationResult.thicknessLabel}"></strong>
+				            </td>
+				        </tr>
 
-            <p>
-                推定される毛糸の太さ：
-                <strong th:text="${combinationResult.thicknessLabel}"></strong>
-            </p>
+				        <tr>
+				            <th scope="row">推奨棒針</th>
+				            <td>
+				                <strong th:text="${combinationResult.knittingNeedleLabel}"></strong>
+				            </td>
+				        </tr>
 
-            <p>
-                推奨棒針：
-                <strong th:text="${combinationResult.knittingNeedleLabel}"></strong>
-            </p>
-
-            <p>
-                推奨かぎ針：
-                <strong th:text="${combinationResult.crochetHookLabel}"></strong>
-            </p>
+				        <tr>
+				            <th scope="row">推奨かぎ針</th>
+				            <td>
+				                <strong th:text="${combinationResult.crochetHookLabel}"></strong>
+				            </td>
+				        </tr>
+				    </tbody>
+				</table>
+			</section>
 
             <p>
                 <a th:href="@{/yarn-guide}">

@@ -3,7 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>ログイン | Knitting</title>
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+	<title>ログイン | Knitting</title>
+
+	<link rel="stylesheet"
+	          th:href="@{/css/common.css}">
+	<link rel="stylesheet"
+	          th:href="@{/css/login.css}">
 </head>
 
 <body>
@@ -67,10 +74,6 @@
             <button type="submit" data-login-submit>ログイン</button>
 
         </form>
-
-        <p>
-            <a th:href="@{/register}">ユーザー登録</a>
-        </p>
 
         <p>
             <a th:href="@{/}">トップへ戻る</a>

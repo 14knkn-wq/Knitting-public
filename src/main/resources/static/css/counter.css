@@ -1,0 +1,65 @@
+@media (min-width: 768px) {
+    body > main {
+        font-size: 1.125rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 2rem;
+    }
+
+    body > main > :not(section) {
+        grid-column: 1 / -1;
+    }
+
+    body > main > section {
+        min-width: 0;
+    }
+
+    body > main input,
+    body > main button {
+        font-size: inherit;
+    }
+
+    #reset-all-button {
+        justify-self: center;
+    }
+}
+
+#stitch-reset-button,
+#row-reset-button {
+    margin-top: 0.75rem;
+}
+
+#reset-all-button {
+    margin-top: 2rem;
+}
+
+#stitch-count,
+#row-count,
+#stitch-decrement-button,
+#stitch-increment-button,
+#row-decrement-button,
+#row-increment-button {
+    box-sizing: border-box;
+    height: 2rem;
+    vertical-align: middle;
+}
+
+#stitch-decrement-button,
+#stitch-increment-button,
+#row-decrement-button,
+#row-increment-button {
+    border: 1px solid #62798b;
+    border-radius: 0.375rem;
+    color: #555555;
+    background-color: #d6e6f5;
+	font-weight: 700;
+}
+
+#stitch-decrement-button:disabled,
+#stitch-increment-button:disabled,
+#row-decrement-button:disabled,
+#row-increment-button:disabled {
+    border-color: #b8b8b8;
+    color: #999999;
+    background-color: #eeeeee;
+}

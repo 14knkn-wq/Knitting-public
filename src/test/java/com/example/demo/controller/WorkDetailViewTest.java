@@ -286,32 +286,41 @@ class WorkDetailViewTest {
                                 csrfToken()
                         )
         )
-                .andExpect(
-                        status().isOk()
-                )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "← 制作中一覧へ戻る"
-                                )
+        .andExpect(
+               status().isOk()
+        )
+        .andExpect(result -> {
+            String html =
+                    result.getResponse().getContentAsString();
+
+            int linkStart = html.indexOf(
+                    "id=\"back-to-in-progress-link\""
+            );
+            assertTrue(linkStart >= 0);
+
+            int linkEnd = html.indexOf("</a>", linkStart);
+            assertTrue(linkEnd >= 0);
+
+            String backLinkHtml =
+                    html.substring(linkStart, linkEnd);
+
+            assertTrue(backLinkHtml.contains(
+                    "href=\"/works/in-progress\""
+            ));
+            assertTrue(backLinkHtml.contains(
+                    "制作中一覧へ戻る"
+            ));
+            assertFalse(html.contains(
+                    "id=\"back-to-completed-link\""
+            ));
+        })
+        .andExpect(
+                content().string(
+                        containsString(
+                                "▶ 制作中一覧"
                         )
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "▶ 制作中一覧"
-                                )
-                        )
-                )
-                .andExpect(
-                        content().string(
-                                not(
-                                        containsString(
-                                                "← 完成一覧へ戻る"
-                                        )
-                                )
-                        )
-                );
+        );
     }
 
     @Test
@@ -343,39 +352,48 @@ class WorkDetailViewTest {
                                 csrfToken()
                         )
         )
-                .andExpect(
-                        status().isOk()
-                )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "← 完成一覧へ戻る"
-                                )
+        .andExpect(
+                status().isOk()
+        )
+        .andExpect(result -> {
+            String html =
+                    result.getResponse().getContentAsString();
+
+            int linkStart = html.indexOf(
+                    "id=\"back-to-completed-link\""
+            );
+            assertTrue(linkStart >= 0);
+
+            int linkEnd = html.indexOf("</a>", linkStart);
+            assertTrue(linkEnd >= 0);
+
+            String backLinkHtml =
+                    html.substring(linkStart, linkEnd);
+
+            assertTrue(backLinkHtml.contains(
+                    "href=\"/works/completed\""
+            ));
+            assertTrue(backLinkHtml.contains(
+                    "完成一覧へ戻る"
+            ));
+            assertFalse(html.contains(
+                    "id=\"back-to-in-progress-link\""
+            ));
+        })
+        .andExpect(
+                content().string(
+                        containsString(
+                                "▶ 完成一覧"
                         )
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "▶ 完成一覧"
-                                )
+        )
+        .andExpect(
+                content().string(
+                        containsString(
+                                "value=\"2026-10-05\""
                         )
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "value=\"2026-10-05\""
-                                )
-                        )
-                )
-                .andExpect(
-                        content().string(
-                                not(
-                                        containsString(
-                                                "← 制作中一覧へ戻る"
-                                        )
-                                )
-                        )
-                );
+        );
     }
 
     @Test
@@ -414,13 +432,31 @@ class WorkDetailViewTest {
                 .andExpect(
                         status().isOk()
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "← 制作中一覧へ戻る"
-                                )
-                        )
-                )
+                .andExpect(result -> {
+                    String html =
+                            result.getResponse().getContentAsString();
+
+                    int linkStart = html.indexOf(
+                            "id=\"back-to-in-progress-link\""
+                    );
+                    assertTrue(linkStart >= 0);
+
+                    int linkEnd = html.indexOf("</a>", linkStart);
+                    assertTrue(linkEnd >= 0);
+
+                    String backLinkHtml =
+                            html.substring(linkStart, linkEnd);
+
+                    assertTrue(backLinkHtml.contains(
+                            "href=\"/works/in-progress\""
+                    ));
+                    assertTrue(backLinkHtml.contains(
+                            "制作中一覧へ戻る"
+                    ));
+                    assertFalse(html.contains(
+                            "id=\"back-to-completed-link\""
+                    ));
+                })
                 .andExpect(
                         content().string(
                                 containsString(
@@ -432,15 +468,6 @@ class WorkDetailViewTest {
                         content().string(
                                 containsString(
                                         "from=in-progress"
-                                )
-                        )
-                )
-                .andExpect(
-                        content().string(
-                                not(
-                                        containsString(
-                                                "← 完成一覧へ戻る"
-                                        )
                                 )
                         )
                 );
@@ -474,40 +501,49 @@ class WorkDetailViewTest {
                                 "_csrf",
                                 csrfToken()
                         )
+        		)
+        .andExpect(
+                status().isOk()
         )
-                .andExpect(
-                        status().isOk()
-                )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "← 完成一覧へ戻る"
-                                )
+        .andExpect(result -> {
+            String html =
+                    result.getResponse().getContentAsString();
+
+            int linkStart = html.indexOf(
+                    "id=\"back-to-completed-link\""
+            );
+            assertTrue(linkStart >= 0);
+
+            int linkEnd = html.indexOf("</a>", linkStart);
+            assertTrue(linkEnd >= 0);
+
+            String backLinkHtml =
+                    html.substring(linkStart, linkEnd);
+
+            assertTrue(backLinkHtml.contains(
+                    "href=\"/works/completed\""
+            ));
+            assertTrue(backLinkHtml.contains(
+                    "完成一覧へ戻る"
+            ));
+            assertFalse(html.contains(
+                    "id=\"back-to-in-progress-link\""
+            ));
+        })
+        .andExpect(
+                content().string(
+                        containsString(
+                                "▶ 完成一覧"
                         )
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "▶ 完成一覧"
-                                )
+        )
+        .andExpect(
+                content().string(
+                        containsString(
+                                "from=completed"
                         )
                 )
-                .andExpect(
-                        content().string(
-                                containsString(
-                                        "from=completed"
-                                )
-                        )
-                )
-                .andExpect(
-                        content().string(
-                                not(
-                                        containsString(
-                                                "← 制作中一覧へ戻る"
-                                        )
-                                )
-                        )
-                );
+        );
     }
 
     @Test

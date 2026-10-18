@@ -21,7 +21,10 @@ section[aria-label="完成作品一覧"] article img {
 
 .work-card-name {
     display: -webkit-box;
+    height: 3em;
+    line-height: 1.5;
     overflow: hidden;
+    overflow-wrap: anywhere;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
 }
@@ -32,6 +35,41 @@ section[aria-label="完成作品一覧"] article img {
     gap: 1rem;
 }
 
+.public-feature-list > a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: 0;
+    min-height: 6rem;
+    padding: 1rem;
+    border: 2px solid #b0c4de;
+    border-radius: 0.5rem;
+    color: #333;
+    background-color: #fff;
+    text-decoration: none;
+}
+
+.public-feature-list > a > h3 {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+@media (hover: hover) and (pointer: fine)
+       and (prefers-reduced-motion: no-preference) {
+    .public-feature-list > a {
+        transition: transform 0.15s ease,
+                    box-shadow 0.15s ease;
+    }
+
+    .public-feature-list > a:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+}
+
 @media (max-width: 767px) {
 
     section[aria-label="制作中作品一覧"],
@@ -39,4 +77,158 @@ section[aria-label="完成作品一覧"] article img {
     .public-feature-list {
         grid-template-columns: 1fr;
     }
+}
+
+.home-catchphrase {
+    font-size: clamp(1.5rem, 7vw, 2rem);
+    line-height: 1.5;
+}
+
+.home-catchphrase > span {
+    display: inline-block;
+}
+
+nav[aria-label="作品一覧の切り替え"] {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+nav[aria-label="作品一覧の切り替え"] > a {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #777;
+    border-radius: 0.375rem;
+    color: #333;
+    background-color: #fff;
+    font-size: 1rem;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+nav[aria-label="作品一覧の切り替え"] > a[aria-current="page"] {
+    color: #333333;
+    background-color: #b0c4de;
+    border-color: #62798b;
+    font-weight: bold;
+}
+nav[aria-label="作品一覧の切り替え"] + div > a {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #d68da5;
+    border-radius: 0.375rem;
+    color: #555555;
+    background-color: #ffe0ea;
+    font-size: 1rem;
+    font-weight: bold;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    nav[aria-label="作品一覧の切り替え"] + div > a:hover {
+        color: #333333;
+        background-color: #ffc2d4;
+    }
+}
+
+nav[aria-label="作品一覧の切り替え"] + div + div {
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+section[aria-label="制作中作品一覧"] article > a,
+section[aria-label="完成作品一覧"] article > a {
+    display: block;
+    box-sizing: border-box;
+    height: 100%;
+    padding: 1rem;
+    border: 2px solid #b8b8b8;
+    border-radius: 0.5rem;
+    color: #333;
+    background-color: #fff;
+    text-decoration: none;
+}
+
+section[aria-label="制作中作品一覧"] article > a > p,
+section[aria-label="完成作品一覧"] article > a > p {
+    margin: 0;
+    padding-top: 0.75rem;
+    border-top: 1px solid #b8b8b8;
+    font-size: 1.3rem;
+    line-height: 1.5;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+    section[aria-label="制作中作品一覧"] article > a,
+    section[aria-label="完成作品一覧"] article > a {
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    section[aria-label="制作中作品一覧"] article > a:hover,
+    section[aria-label="完成作品一覧"] article > a:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+}
+
+.home-work-section > div:first-child {
+    margin-bottom: 1.5rem;
+}
+
+.home-work-section > p:last-child {
+    margin-block: 1.5rem;
+}
+
+.home-work-section > div > a,
+.home-work-section > div > p > a,
+.home-work-section > p > a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-height: 2.75rem;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid #777;
+    border-radius: 0.375rem;
+    color: #333;
+    background-color: #f0f0f0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-decoration: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .home-work-section > div > a:hover,
+    .home-work-section > div > p > a:hover,
+    .home-work-section > p > a:hover {
+        background-color: #e2e2e2;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20);
+    }
+}
+
+.home-work-section > div > a,
+.home-work-section > div > p > a {
+    border-color: #d68da5;
+    color: #555555;
+    background-color: #ffe0ea;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .home-work-section > div > a:hover,
+    .home-work-section > div > p > a:hover {
+        color: #333333;
+        background-color: #ffc2d4;
+    }
+}
+
+#public-features-heading,
+section[aria-labelledby="public-features-heading"] + section > h2 {
+    font-size: clamp(1.375rem, 3vw, 1.5rem);
+    font-weight: 700;
+    line-height: 1.5;
+    color: #526d82;
 }
