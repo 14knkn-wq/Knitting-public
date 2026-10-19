@@ -4,6 +4,9 @@ const photoInput =
 const photoPreview =
         document.getElementById("photo-preview");
 
+const MAX_PHOTO_SIZE_BYTES =
+		10 * 1024 * 1024;
+
 if (photoInput && photoPreview) {
 
     const defaultPreviewSrc =
@@ -30,15 +33,22 @@ if (photoInput && photoPreview) {
                 const file =
                         photoInput.files[0];
 
-                if (!file) {
-                    photoPreview.src =
-                            defaultPreviewSrc;
+				if (!file) {
+					photoPreview.src =
+						    defaultPreviewSrc;
 
-                    return;
-                }
+					return;
+				}
 
-                currentObjectUrl =
-                        URL.createObjectURL(file);
+				if (file.size > MAX_PHOTO_SIZE_BYTES) {
+					photoPreview.src =
+						    defaultPreviewSrc;
+
+					return;
+				}
+
+				currentObjectUrl =
+						URL.createObjectURL(file);
 
                 photoPreview.src =
                         currentObjectUrl;
@@ -56,6 +66,9 @@ const workCreateForm =
 
 const submitButton =
         document.getElementById("submit-button");
+
+const photoSizeError =
+		document.getElementById("photo-size-error");
 
 		if (workCreateForm && submitButton) {
 		    const nameInput =
@@ -81,14 +94,24 @@ const submitButton =
 		        const nameForValidation =
 		                getNameForValidation();
 
-		        const isInvalidName =
-		                nameForValidation.length === 0
-		                || Array.from(nameForValidation).length > 50;
+				const isInvalidName =
+						nameForValidation.length === 0
+						|| Array.from(nameForValidation).length > 50;
 
-		        submitButton.disabled =
-		                isSubmitting
-		                || isInvalidName
-		                || !workCreateForm.checkValidity();
+				const selectedPhoto =
+						photoInput.files[0];
+
+				const isTooLargePhoto =
+						selectedPhoto !== undefined
+						&& selectedPhoto.size > MAX_PHOTO_SIZE_BYTES;
+
+				photoSizeError.hidden = !isTooLargePhoto;
+
+				submitButton.disabled =
+						isSubmitting
+						|| isInvalidName
+						|| isTooLargePhoto
+						|| !workCreateForm.checkValidity();
 		    }
 
 		    workCreateForm.addEventListener(

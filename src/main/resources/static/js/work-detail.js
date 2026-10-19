@@ -1038,6 +1038,34 @@ function handleCounterInput(
 	    return;
 	}
 
+	if (channel.state === "CONFLICT") {
+	    const value =
+	            parseCounterValue(normalized);
+
+	    const invalidValue =
+	            normalized !== ""
+	            && value === null;
+
+	    channel.validationError = invalidValue;
+
+	    if (value !== null) {
+	        channel.pendingValue = value;
+	    }
+
+	    const validationMessage =
+	            invalidValue
+	                    ? "0～9999の整数で入力してください。 "
+	                    : "";
+
+	    showFieldError(
+	            channel.errorElement,
+	            validationMessage
+	            + "他の変更と競合したため保存できませんでした。ページを再読み込みしてください。"
+	    );
+
+	    return;
+	}
+
     if (normalized === "") {
         clearDebounceTimer(channel);
 
@@ -1486,15 +1514,35 @@ memoInput.addEventListener(
 			    return;
 			}
 
-            const length =
-                    countCodePoints(
-                            memoInput.value
-                    );
+			const length =
+			        countCodePoints(
+			                memoInput.value
+			        );
 
-            if (length > 1000) {
-                clearDebounceTimer(
-                        memoChannel
-                );
+			if (memoChannel.state === "CONFLICT") {
+			    memoChannel.validationError =
+			            length > 1000;
+
+			    const conflictMessage =
+			            "他の変更と競合したため保存できませんでした。ページを再読み込みしてください。";
+
+			    const validationMessage =
+			            length > 1000
+			                    ? "制作メモは1000文字以内で入力してください。"
+			                    : "";
+
+			    showFieldError(
+			            memoError,
+			            validationMessage + conflictMessage
+			    );
+
+			    return;
+			}
+
+			if (length > 1000) {
+			    clearDebounceTimer(
+			            memoChannel
+			    );
 
                 memoChannel.validationError =
                         true;

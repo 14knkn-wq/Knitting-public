@@ -54,14 +54,21 @@
                     th:field="*{photo}"
                     accept=".jpg,.jpeg,.png,image/jpeg,image/png">
 
-                <p>
-                    JPEGまたはPNG・10MB以下
-                </p>
+				<p>
+					    JPEGまたはPNG・10MB以下
+				</p>
 
-                <p
-                    th:if="${#fields.hasErrors('photo')}"
-                    th:errors="*{photo}">
-                </p>
+				<p
+					    id="photo-size-error"
+					    role="alert"
+					    hidden>
+					    画像は10MB以下のファイルを選択してください。
+				</p>
+
+				<p
+					    th:if="${#fields.hasErrors('photo')}"
+					    th:errors="*{photo}">
+				</p>
             </div>
 
             <div>
