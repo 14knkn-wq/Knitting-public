@@ -161,96 +161,157 @@
 
         </form>
 		
-		<section th:if="${adjustmentResult != null}">
+		<section
+		    id="gauge-adjustment-result"
+		    th:if="${adjustmentResult != null}">
 
 		    <h2>計算結果</h2>
 
-		    <div th:if="${adjustmentResult.stitchCalculatedValue != null}">
+		    <section
+		        class="gauge-adjustment-result-panel"
+		        th:if="${adjustmentResult.stitchCalculatedValue != null}">
 
 		        <h3>目数調整</h3>
 
-		        <p>
-		            指定目ゲージ：
-		            <span th:text="${gaugeAdjustmentForm.specifiedStitchGauge}"></span>
-		            目 / 10cm
-		        </p>
+		        <h4>入力内容</h4>
 
-		        <p>
-		            実測目ゲージ：
-		            <span th:text="${gaugeAdjustmentForm.measuredStitchGauge}"></span>
-		            目 / 10cm
-		        </p>
+		        <table class="gauge-adjustment-summary-table">
+		            <tbody>
+		                <tr>
+		                    <th scope="row">指定目ゲージ</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.specifiedStitchGauge}"></span>
+		                        目 / 10cm
+		                    </td>
+		                </tr>
 
-		        <p>
-		            元の目数：
-		            <span th:text="${gaugeAdjustmentForm.originalStitchCount}"></span>
-		            目
-		        </p>
+		                <tr>
+		                    <th scope="row">実測目ゲージ</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.measuredStitchGauge}"></span>
+		                        目 / 10cm
+		                    </td>
+		                </tr>
 
-		        <p>
-		            四捨五入前 計算値：
-		            <span
-		                th:text="${adjustmentResult.stitchCalculatedValue
-		                    .setScale(5, T(java.math.RoundingMode).HALF_UP)
-		                    .stripTrailingZeros()
-		                    .toPlainString()}">
-		            </span>
-		            目
-		        </p>
+		                <tr>
+		                    <th scope="row">元の目数</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.originalStitchCount}"></span>
+		                        目
+		                    </td>
+		                </tr>
+		            </tbody>
+		        </table>
 
-		        <p>
-		            調整後の目数：
-		            <strong th:text="${adjustmentResult.adjustedStitchCount}"></strong>
-		            目
-		        </p>
+		        <h4>調整結果</h4>
 
-		    </div>
+		        <table
+		            class="gauge-adjustment-summary-table gauge-adjustment-output-table">
+		            <tbody>
+		                <tr>
+		                    <th scope="row">四捨五入前 計算値</th>
+		                    <td>
+		                        <span
+		                            th:text="${adjustmentResult.stitchCalculatedValue
+		                                .setScale(5, T(java.math.RoundingMode).HALF_UP)
+		                                .stripTrailingZeros()
+		                                .toPlainString()}">
+		                        </span>
+		                        目
+		                    </td>
+		                </tr>
 
-		    <div th:if="${adjustmentResult.rowCalculatedValue != null}">
+		                <tr>
+		                    <th scope="row">調整後の目数</th>
+		                    <td>
+		                        <strong>
+		                            <span th:text="${adjustmentResult.adjustedStitchCount}"></span>
+		                            目
+		                        </strong>
+		                    </td>
+		                </tr>
+		            </tbody>
+		        </table>
+
+		    </section>
+
+		    <section
+		        class="gauge-adjustment-result-panel"
+		        th:if="${adjustmentResult.rowCalculatedValue != null}">
 
 		        <h3>段数調整</h3>
 
+		        <h4>入力内容</h4>
+
+		        <table class="gauge-adjustment-summary-table">
+		            <tbody>
+		                <tr>
+		                    <th scope="row">指定段ゲージ</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.specifiedRowGauge}"></span>
+		                        段 / 10cm
+		                    </td>
+		                </tr>
+
+		                <tr>
+		                    <th scope="row">実測段ゲージ</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.measuredRowGauge}"></span>
+		                        段 / 10cm
+		                    </td>
+		                </tr>
+
+		                <tr>
+		                    <th scope="row">元の段数</th>
+		                    <td>
+		                        <span th:text="${gaugeAdjustmentForm.originalRowCount}"></span>
+		                        段
+		                    </td>
+		                </tr>
+		            </tbody>
+		        </table>
+
+		        <h4>調整結果</h4>
+
+		        <table
+		            class="gauge-adjustment-summary-table gauge-adjustment-output-table">
+		            <tbody>
+		                <tr>
+		                    <th scope="row">四捨五入前 計算値</th>
+		                    <td>
+		                        <span
+		                            th:text="${adjustmentResult.rowCalculatedValue
+		                                .setScale(5, T(java.math.RoundingMode).HALF_UP)
+		                                .stripTrailingZeros()
+		                                .toPlainString()}">
+		                        </span>
+		                        段
+		                    </td>
+		                </tr>
+
+		                <tr>
+		                    <th scope="row">調整後の段数</th>
+		                    <td>
+		                        <strong>
+		                            <span th:text="${adjustmentResult.adjustedRowCount}"></span>
+		                            段
+		                        </strong>
+		                    </td>
+		                </tr>
+		            </tbody>
+		        </table>
+
+		    </section>
+
+		    <div class="gauge-adjustment-notice">
 		        <p>
-		            指定段ゲージ：
-		            <span th:text="${gaugeAdjustmentForm.specifiedRowGauge}"></span>
-		            段 / 10cm
+		            計算結果は目安です。
 		        </p>
 
 		        <p>
-		            実測段ゲージ：
-		            <span th:text="${gaugeAdjustmentForm.measuredRowGauge}"></span>
-		            段 / 10cm
+		            実際に使用する糸と針で試し編みを行うことをおすすめします。
 		        </p>
-
-		        <p>
-		            元の段数：
-		            <span th:text="${gaugeAdjustmentForm.originalRowCount}"></span>
-		            段
-		        </p>
-
-		        <p>
-		            四捨五入前 計算値：
-		            <span
-		                th:text="${adjustmentResult.rowCalculatedValue
-		                    .setScale(5, T(java.math.RoundingMode).HALF_UP)
-		                    .stripTrailingZeros()
-		                    .toPlainString()}">
-		            </span>
-		            段
-		        </p>
-
-		        <p>
-		            調整後の段数：
-		            <strong th:text="${adjustmentResult.adjustedRowCount}"></strong>
-		            段
-		        </p>
-
 		    </div>
-
-		    <p>
-		        計算結果は目安です。
-		        実際に使用する糸と針で試し編みを行うことをおすすめします。
-		    </p>
 
 		</section>
 

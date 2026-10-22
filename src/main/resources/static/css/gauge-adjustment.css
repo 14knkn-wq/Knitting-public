@@ -89,4 +89,82 @@
     font-size: 1rem;
     font-weight: 600;
     line-height: 1.5;
-}
+	}
+
+	#gauge-adjustment-result {
+	    box-sizing: border-box;
+	    width: min(100%, 40rem);
+	    margin: 1.5rem auto 0;
+	    padding: 1.25rem;
+	    border: 2px solid #b0c4de;
+	    border-radius: 0.5rem;
+	    background-color: #ffffff;
+	    font-size: 1.125rem;
+	    line-height: 1.7;
+	}
+
+	#gauge-adjustment-result > h2 {
+	    margin-top: 0;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-result-panel
+	    + .gauge-adjustment-result-panel {
+	    margin-top: 1.5rem;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-summary-table {
+	    width: 100%;
+	    margin-inline: auto;
+	    border-collapse: collapse;
+	    table-layout: fixed;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-summary-table th,
+	#gauge-adjustment-result .gauge-adjustment-summary-table td {
+	    padding: 0.625rem 0.75rem;
+	    border: 1px solid #b0c4de;
+	    text-align: left;
+	    vertical-align: top;
+	    overflow-wrap: anywhere;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-summary-table th {
+	    width: 45%;
+	    background-color: #edf4fa;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-output-table th,
+	#gauge-adjustment-result .gauge-adjustment-output-table td {
+	    border-color: #d68da5;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-output-table th {
+	    background-color: #ffe0ea;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-output-table td {
+	    background-color: #fff7fa;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-notice {
+	    box-sizing: border-box;
+	    margin-top: 1.5rem;
+	    padding: 1rem;
+	    border: 1px solid #b0c4de;
+	    border-radius: 0.5rem;
+	    background-color: #edf4fa;
+	    text-align: left;
+	    line-height: 1.7;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-notice > p {
+	    margin: 0;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-notice > p + p {
+	    margin-top: 0.75rem;
+	}
+
+	#gauge-adjustment-result .gauge-adjustment-notice > p:first-child {
+	    font-weight: 700;
+	}
