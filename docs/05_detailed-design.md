@@ -8,10 +8,10 @@
 | --- | --- |
 | 対象システム | Knitting |
 | 文書種別 | 詳細設計書 |
-| 文書状態 | 詳細設計01～13の統合版。初期版の実装内容を反映済み。資料見直し完了、GitHub一般公開準備中 |
+| 文書状態 | 詳細設計01～13の統合版。初期版の実装内容を反映済み。資料見直し完了、GitHub一般公開済み |
 | 作成日 | 2026年9月11日 |
 | 最終更新日 | 2026年10月21日 |
-| 実装状況 | Step1～14の機能実装・確認、Step15「総合テスト」、Step16「UI最終調整」、Step17「エラー処理最終確認」を完了。README本文および設計資料5件の見直しは完了。GitHub一般公開準備中。Webアプリケーションの公開環境は未構築。 |
+| 実装状況 | Step1～14の機能実装・確認、Step15「総合テスト」、Step16「UI最終調整」、Step17「エラー処理最終確認」を完了。README本文および設計資料5件の見直しは完了。GitHub一般公開済み。Webアプリケーションの公開環境は未構築。 |
 | 技術前提 | Java 25 / Spring Boot 4.0.8 / Maven / Eclipse / Spring MVC / Thymeleaf / HTML / CSS / 必要最小限のJavaScript / Spring Data JPA / Spring Security / MySQL Community 8.4 LTS / Flyway |
 
 ### 本書の目的
