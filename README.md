@@ -1,5 +1,7 @@
 # Knitting
 
+[![Maven CI](https://github.com/14knkn-wq/Knitting-public/actions/workflows/maven-ci.yml/badge.svg?branch=master)](https://github.com/14knkn-wq/Knitting-public/actions/workflows/maven-ci.yml)
+
 編み物に必要な計算と作品の制作記録を支援するWebアプリケーションです。
 
 編み図と異なる毛糸を使用する際の目数・段数の調整や、2本取り・引き揃えの計算ができます。
