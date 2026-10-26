@@ -306,7 +306,7 @@ flowchart TB
 
 **未ログイン時のトップ画面**
 
-![S-01 トップ画面（未ログイン時）](images/screenshots/top-guest.png)
+<img src="images/screenshots/top-guest.png" alt="S-01 トップ画面（未ログイン時）" width="600">
 
 ### 6.2 S-02 ユーザー登録画面
 
@@ -439,11 +439,11 @@ flowchart TB
 
 **ゲージ・目数・段数調整画面（PC表示）**
 
-![S-04 ゲージ・目数・段数調整画面](images/screenshots/gauge-adjustment.png)
+<img src="images/screenshots/gauge-adjustment.png" alt="S-04 ゲージ・目数・段数調整画面（PC表示）" width="600">
 
 **ゲージ・目数・段数調整画面（スマートフォン表示）**
 
-![S-04 ゲージ・目数・段数調整画面（スマートフォン表示）](images/screenshots/gauge-adjustment-mobile.png)
+<img src="images/screenshots/gauge-adjustment-mobile.png" alt="S-04 ゲージ・目数・段数調整画面（スマートフォン表示）" width="280">
 
 #### 基本情報
 
@@ -516,7 +516,7 @@ flowchart TB
 
 **2本取り・引き揃え計算画面**
 
-![S-05 2本取り・引き揃え計算画面](images/screenshots/yarn-combination.png)
+<img src="images/screenshots/yarn-combination.png" alt="S-05 2本取り・引き揃え計算画面" width="600">
 
 #### 基本情報
 
@@ -966,7 +966,7 @@ flowchart TB
 
 **完成作品一覧画面**
 
-![S-10 完成作品一覧画面](images/screenshots/works-completed.png)
+<img src="images/screenshots/works-completed.png" alt="S-10 完成作品一覧画面" width="600">
 
 ### 6.11 S-11 作品詳細画面
 
@@ -1127,7 +1127,7 @@ flowchart TB
 
 **作品詳細画面**
 
-![S-11 作品詳細画面](images/screenshots/work-detail.png)
+<img src="images/screenshots/work-detail.png" alt="S-11 作品詳細画面" width="600">
 
 ## 7. 共通メッセージ・確認操作
 
